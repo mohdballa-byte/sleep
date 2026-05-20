@@ -3,824 +3,322 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Biologic Annual Dose & Pack Calculator</title>
+<title>Biologic Pack Calculator</title>
 <style>
-  :root {
-    --primary: #c8102e;
-    --primary-dark: #8a0a20;
-    --bg: #f4f6fa;
-    --card: #ffffff;
-    --border: #e2e6ee;
-    --text: #1a2233;
-    --muted: #6b7588;
-    --accent: #0a6bbd;
-    --success: #1c8a4a;
-    --warn: #b87000;
-  }
   * { box-sizing: border-box; }
   body {
     margin: 0;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    line-height: 1.45;
-  }
-  header {
-    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-    color: white;
-    padding: 24px 32px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-  }
-  header h1 { margin: 0 0 4px 0; font-size: 22px; }
-  header p { margin: 0; opacity: 0.9; font-size: 13px; }
-  .container {
-    max-width: 1280px;
-    margin: 0 auto;
-    padding: 24px;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 20px;
-  }
-  .card {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 20px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
-  }
-  .card h2 {
-    margin: 0 0 14px 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    background: #fafafa;
+    color: #222;
     font-size: 15px;
+    line-height: 1.5;
+  }
+  .wrap {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 32px 20px 60px;
+  }
+  h1 {
+    font-size: 22px;
+    margin: 0 0 4px;
+    font-weight: 600;
+  }
+  .sub {
+    color: #888;
+    font-size: 13px;
+    margin-bottom: 32px;
+  }
+  h2 {
+    font-size: 14px;
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    color: var(--primary);
-    border-bottom: 2px solid var(--border);
-    padding-bottom: 8px;
-  }
-  .full-row { grid-column: 1 / -1; }
-  label {
-    display: block;
-    font-size: 12px;
+    color: #888;
+    margin: 32px 0 12px;
     font-weight: 600;
-    color: var(--muted);
-    margin-bottom: 4px;
-    text-transform: uppercase;
-    letter-spacing: 0.3px;
   }
-  input, select {
-    width: 100%;
-    padding: 8px 10px;
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    font-size: 14px;
+  .row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
     background: white;
-    color: var(--text);
-  }
-  input:focus, select:focus {
-    outline: none;
-    border-color: var(--accent);
-    box-shadow: 0 0 0 2px rgba(10,107,189,0.15);
-  }
-  .grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
-    margin-bottom: 12px;
-  }
-  .grid-3 { grid-template-columns: repeat(3, 1fr); }
-  .grid-4 { grid-template-columns: repeat(4, 1fr); }
-  button {
-    background: var(--primary);
-    color: white;
-    border: none;
-    padding: 10px 18px;
-    border-radius: 6px;
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background 0.15s;
-  }
-  button:hover { background: var(--primary-dark); }
-  button.secondary {
-    background: var(--accent);
-  }
-  button.ghost {
-    background: transparent;
-    color: var(--primary);
-    border: 1px solid var(--primary);
-  }
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 13px;
-    margin-top: 8px;
-  }
-  th, td {
-    text-align: left;
-    padding: 8px 10px;
-    border-bottom: 1px solid var(--border);
-  }
-  th {
-    background: #f8fafd;
-    font-weight: 600;
-    color: var(--muted);
-    font-size: 11px;
-    text-transform: uppercase;
-    letter-spacing: 0.3px;
-  }
-  tr:hover td { background: #fafbfd; }
-  .summary {
-    background: linear-gradient(135deg, #f0f6ff, #e9f0fc);
-    border: 1px solid #c5d8f0;
+    border: 1px solid #e5e5e5;
     border-radius: 8px;
-    padding: 16px;
-    margin-top: 12px;
+    padding: 10px 12px;
+    margin-bottom: 8px;
   }
-  .summary-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 14px;
+  .row select, .row input {
+    border: none;
+    background: transparent;
+    font-size: 14px;
+    padding: 4px 6px;
+    color: #222;
+    min-width: 0;
   }
-  .stat {
+  .row select:focus, .row input:focus {
+    outline: none;
+    background: #f4f4f4;
+    border-radius: 4px;
+  }
+  .row .drug { flex: 1.5; }
+  .row .indication { flex: 1.5; }
+  .row .month { flex: 1; }
+  .row .count { width: 60px; text-align: center; }
+  .row .x {
+    background: none;
+    border: none;
+    color: #c00;
+    font-size: 18px;
+    cursor: pointer;
+    padding: 0 4px;
+  }
+  .row .x:hover { color: #800; }
+  .add {
+    background: white;
+    border: 1px dashed #bbb;
+    color: #666;
+    padding: 10px 14px;
+    border-radius: 8px;
+    width: 100%;
+    cursor: pointer;
+    font-size: 13px;
+  }
+  .add:hover { border-color: #888; color: #222; }
+  .result {
+    background: #222;
+    color: white;
+    border-radius: 10px;
+    padding: 24px;
+    margin-top: 40px;
     text-align: center;
   }
-  .stat .value {
-    font-size: 26px;
+  .result .big {
+    font-size: 48px;
     font-weight: 700;
-    color: var(--accent);
+    line-height: 1;
   }
-  .stat .label {
-    font-size: 11px;
-    text-transform: uppercase;
-    color: var(--muted);
-    margin-top: 2px;
-  }
-  .patient-row {
-    display: grid;
-    grid-template-columns: 1fr 1.4fr 1.4fr 90px 90px 90px 40px;
-    gap: 8px;
-    align-items: end;
-    padding: 8px;
-    background: #fafbfd;
-    border-radius: 6px;
-    margin-bottom: 6px;
-  }
-  .patient-row label { font-size: 10px; margin-bottom: 2px; }
-  .patient-row input, .patient-row select { padding: 6px 8px; font-size: 13px; }
-  .remove-btn {
-    background: #efefef;
-    color: var(--primary);
-    border: none;
-    border-radius: 4px;
-    width: 32px;
-    height: 32px;
-    cursor: pointer;
-    font-weight: 700;
-  }
-  .remove-btn:hover { background: #fdd; }
-  .indication-tag {
-    display: inline-block;
-    padding: 2px 6px;
-    border-radius: 4px;
-    font-size: 10px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.3px;
-  }
-  .tag-rheum { background: #fde8e8; color: #b00020; }
-  .tag-derm  { background: #e8f4fd; color: #0a6bbd; }
-  .tag-gi    { background: #e8f7ed; color: #1c8a4a; }
-  .actions { display: flex; gap: 8px; margin-top: 10px; }
-  .note {
+  .result .lbl {
     font-size: 12px;
-    color: var(--muted);
-    font-style: italic;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #999;
     margin-top: 6px;
   }
-  .pill {
-    display: inline-block;
-    padding: 1px 8px;
-    border-radius: 10px;
-    background: #eef2f8;
-    font-size: 11px;
-    color: var(--muted);
-    margin-left: 6px;
+  .split {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid #444;
   }
-  details > summary {
+  .split div { text-align: center; }
+  .split .v { font-size: 20px; font-weight: 600; }
+  .split .l { font-size: 11px; color: #999; text-transform: uppercase; }
+  details {
+    margin-top: 20px;
+    background: white;
+    border: 1px solid #e5e5e5;
+    border-radius: 8px;
+    padding: 12px 16px;
+  }
+  details summary {
     cursor: pointer;
-    font-weight: 600;
     font-size: 13px;
-    color: var(--accent);
-    padding: 6px 0;
+    color: #555;
+    font-weight: 500;
   }
-  .disclaimer {
-    background: #fff8e6;
-    border-left: 4px solid var(--warn);
-    padding: 10px 14px;
-    font-size: 12px;
-    color: #6a4a00;
-    border-radius: 4px;
-    margin-bottom: 16px;
-  }
-  @media (max-width: 900px) {
-    .container { grid-template-columns: 1fr; }
-    .summary-grid { grid-template-columns: repeat(2, 1fr); }
-    .patient-row { grid-template-columns: 1fr 1fr; }
-  }
+  table { width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 13px; }
+  th, td { text-align: left; padding: 6px 4px; border-bottom: 1px solid #eee; }
+  th { color: #888; font-weight: 500; font-size: 11px; text-transform: uppercase; }
+  td.num { text-align: right; }
 </style>
 </head>
 <body>
-<header>
-  <h1>Biologic Annual Dose & Pack Calculator</h1>
-  <p>Plan annual pack requirements for J&amp;J biologics — induction + maintenance, carryover, and dose-reduction adjustments.</p>
-</header>
+<div class="wrap">
+  <h1>Biologic Pack Calculator</h1>
+  <div class="sub">Forecast annual packs for J&amp;J biologics — induction + maintenance to year-end.</div>
 
-<div class="container">
-  <div class="card full-row">
-    <div class="disclaimer">
-      <strong>Decision-support tool.</strong> Dosing schedules are simplified reference values for forecasting pack volumes. Always verify against the current product SmPC / prescribing information and local protocols before clinical use.
+  <h2>New Patients</h2>
+  <div id="new"></div>
+  <button class="add" data-add="new">+ Add patient</button>
+
+  <h2>Carryover Patients</h2>
+  <div id="carry"></div>
+  <button class="add" data-add="carry">+ Add carryover</button>
+
+  <h2>Dose Reduction</h2>
+  <div id="red"></div>
+  <button class="add" data-add="red">+ Add reduced-dose group</button>
+
+  <div class="result">
+    <div class="big" id="total">0</div>
+    <div class="lbl">Total Packs to Order</div>
+    <div class="split">
+      <div><div class="v" id="tNew">0</div><div class="l">New</div></div>
+      <div><div class="v" id="tCarry">0</div><div class="l">Carryover</div></div>
+      <div><div class="v" id="tRed">0</div><div class="l">Reduced</div></div>
     </div>
   </div>
 
-  <!-- NEW PATIENTS -->
-  <div class="card full-row">
-    <h2>New Patients — Induction + Maintenance to Year End</h2>
-    <p class="note">Add each new patient with the month they start. The calculator runs the induction schedule then maintenance dosing through December of the current year.</p>
-
-    <div id="newPatients"></div>
-    <div class="actions">
-      <button id="addPatient">+ Add New Patient</button>
-      <button class="ghost" id="loadExample">Load Example Cohort</button>
-    </div>
-  </div>
-
-  <!-- CARRYOVER -->
-  <div class="card">
-    <h2>Carryover Patients <span class="pill">already on maintenance</span></h2>
-    <p class="note">Patients who started in a prior year and continue maintenance dosing through the full year ahead.</p>
-    <div id="carryoverList"></div>
-    <div class="actions">
-      <button id="addCarryover" class="secondary">+ Add Carryover Group</button>
-    </div>
-  </div>
-
-  <!-- DROP OF STRENGTH -->
-  <div class="card">
-    <h2>Dose Reduction <span class="pill">drop of strength</span></h2>
-    <p class="note">Patients tapered to a reduced regimen (e.g., extended interval or lower dose). Adjusts annual pack count downward.</p>
-    <div id="reductionList"></div>
-    <div class="actions">
-      <button id="addReduction" class="secondary">+ Add Reduced-Dose Group</button>
-    </div>
-  </div>
-
-  <!-- RESULTS -->
-  <div class="card full-row">
-    <h2>Annual Pack Forecast</h2>
-    <div class="summary">
-      <div class="summary-grid">
-        <div class="stat">
-          <div class="value" id="totalNew">0</div>
-          <div class="label">Packs — New Patients</div>
-        </div>
-        <div class="stat">
-          <div class="value" id="totalCarry">0</div>
-          <div class="label">Packs — Carryover</div>
-        </div>
-        <div class="stat">
-          <div class="value" id="totalReduced">0</div>
-          <div class="label">Packs — Reduced Dose</div>
-        </div>
-        <div class="stat">
-          <div class="value" id="totalGrand" style="color: var(--primary);">0</div>
-          <div class="label">Total Packs to Order</div>
-        </div>
-      </div>
-    </div>
-
-    <details open style="margin-top: 16px;">
-      <summary>Breakdown by Drug</summary>
-      <table id="drugBreakdown">
-        <thead>
-          <tr>
-            <th>Drug</th>
-            <th>New Patients</th>
-            <th>Carryover</th>
-            <th>Reduced</th>
-            <th>Total Packs</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-    </details>
-
-    <details style="margin-top: 12px;">
-      <summary>Per-Patient Detail (New Patients)</summary>
-      <table id="patientDetail">
-        <thead>
-          <tr>
-            <th>#</th>
-            <th>Drug</th>
-            <th>Indication</th>
-            <th>Start</th>
-            <th>Induction Doses</th>
-            <th>Maintenance Doses</th>
-            <th>Packs/Dose</th>
-            <th>Total Packs</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-    </details>
-  </div>
+  <details>
+    <summary>Breakdown by drug</summary>
+    <table id="breakdown">
+      <thead><tr><th>Drug</th><th class="num">New</th><th class="num">Carry</th><th class="num">Red</th><th class="num">Total</th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </details>
 </div>
 
 <script>
-/* ============================================================
-   DRUG / INDICATION DATABASE
-   Simplified standard adult dosing for forecasting purposes.
-   packsPerDose = number of pack units consumed per administration.
-   ============================================================ */
 const DRUGS = {
-  tremfya: {
-    name: "Tremfya (guselkumab)",
-    company: "Johnson & Johnson",
-    indications: {
-      psoriasis: {
-        label: "Plaque Psoriasis", area: "Dermatology",
-        induction: [0, 4],           // weeks
-        maintenanceIntervalWk: 8,
-        packsPerDose: 1
-      },
-      psa: {
-        label: "Psoriatic Arthritis", area: "Rheumatology",
-        induction: [0, 4],
-        maintenanceIntervalWk: 8,
-        packsPerDose: 1
-      },
-      uc: {
-        label: "Ulcerative Colitis", area: "Gastroenterology",
-        induction: [0, 4, 8],
-        maintenanceIntervalWk: 8,
-        packsPerDose: 2          // 200 mg SC maintenance = 2 packs
-      },
-      cd: {
-        label: "Crohn's Disease", area: "Gastroenterology",
-        induction: [0, 4, 8],
-        maintenanceIntervalWk: 8,
-        packsPerDose: 2
-      }
-    }
-  },
-  remicade: {
-    name: "Remicade (infliximab)",
-    company: "Johnson & Johnson",
-    indications: {
-      ra: {
-        label: "Rheumatoid Arthritis", area: "Rheumatology",
-        induction: [0, 2, 6],
-        maintenanceIntervalWk: 8,
-        packsPerDose: 3       // ~5 mg/kg × 70 kg / 100 mg vials ≈ 3 vials
-      },
-      as: {
-        label: "Ankylosing Spondylitis", area: "Rheumatology",
-        induction: [0, 2, 6],
-        maintenanceIntervalWk: 6,
-        packsPerDose: 4       // 5 mg/kg q6w typical
-      },
-      psa: {
-        label: "Psoriatic Arthritis", area: "Rheumatology",
-        induction: [0, 2, 6],
-        maintenanceIntervalWk: 8,
-        packsPerDose: 3
-      },
-      psoriasis: {
-        label: "Plaque Psoriasis", area: "Dermatology",
-        induction: [0, 2, 6],
-        maintenanceIntervalWk: 8,
-        packsPerDose: 3
-      },
-      cd: {
-        label: "Crohn's Disease", area: "Gastroenterology",
-        induction: [0, 2, 6],
-        maintenanceIntervalWk: 8,
-        packsPerDose: 3
-      },
-      uc: {
-        label: "Ulcerative Colitis", area: "Gastroenterology",
-        induction: [0, 2, 6],
-        maintenanceIntervalWk: 8,
-        packsPerDose: 3
-      }
-    }
-  },
-  simponi: {
-    name: "Simponi (golimumab)",
-    company: "Johnson & Johnson",
-    indications: {
-      ra: {
-        label: "Rheumatoid Arthritis", area: "Rheumatology",
-        induction: [],                  // no separate induction (50 mg monthly from start)
-        maintenanceIntervalWk: 4,
-        packsPerDose: 1
-      },
-      psa: {
-        label: "Psoriatic Arthritis", area: "Rheumatology",
-        induction: [],
-        maintenanceIntervalWk: 4,
-        packsPerDose: 1
-      },
-      as: {
-        label: "Ankylosing Spondylitis", area: "Rheumatology",
-        induction: [],
-        maintenanceIntervalWk: 4,
-        packsPerDose: 1
-      },
-      uc: {
-        label: "Ulcerative Colitis", area: "Gastroenterology",
-        induction: [0, 2],            // 200 mg wk0, 100 mg wk2
-        inductionPacks: [4, 2],       // 50-mg pens
-        maintenanceIntervalWk: 4,
-        packsPerDose: 2               // 100 mg q4w
-      }
-    }
-  },
-  stelara: {
-    name: "Stelara (ustekinumab)",
-    company: "Johnson & Johnson",
-    indications: {
-      psoriasis: {
-        label: "Plaque Psoriasis", area: "Dermatology",
-        induction: [0, 4],
-        maintenanceIntervalWk: 12,
-        packsPerDose: 1
-      },
-      psa: {
-        label: "Psoriatic Arthritis", area: "Rheumatology",
-        induction: [0, 4],
-        maintenanceIntervalWk: 12,
-        packsPerDose: 1
-      },
-      cd: {
-        label: "Crohn's Disease", area: "Gastroenterology",
-        induction: [0, 8],           // IV induction at wk0, SC at wk8 then q8w
-        maintenanceIntervalWk: 8,
-        packsPerDose: 1
-      },
-      uc: {
-        label: "Ulcerative Colitis", area: "Gastroenterology",
-        induction: [0, 8],
-        maintenanceIntervalWk: 8,
-        packsPerDose: 1
-      }
-    }
-  }
+  tremfya: { name: "Tremfya", indications: {
+    psoriasis: { label: "Psoriasis (Derm)",  induction: [0,4],   maint: 8,  packs: 1 },
+    psa:       { label: "PsA (Rheum)",       induction: [0,4],   maint: 8,  packs: 1 },
+    uc:        { label: "UC (GI)",           induction: [0,4,8], maint: 8,  packs: 2 },
+    cd:        { label: "Crohn's (GI)",      induction: [0,4,8], maint: 8,  packs: 2 }
+  }},
+  remicade: { name: "Remicade", indications: {
+    ra:        { label: "RA (Rheum)",        induction: [0,2,6], maint: 8,  packs: 3 },
+    as:        { label: "AS (Rheum)",        induction: [0,2,6], maint: 6,  packs: 4 },
+    psa:       { label: "PsA (Rheum)",       induction: [0,2,6], maint: 8,  packs: 3 },
+    psoriasis: { label: "Psoriasis (Derm)",  induction: [0,2,6], maint: 8,  packs: 3 },
+    cd:        { label: "Crohn's (GI)",      induction: [0,2,6], maint: 8,  packs: 3 },
+    uc:        { label: "UC (GI)",           induction: [0,2,6], maint: 8,  packs: 3 }
+  }},
+  simponi: { name: "Simponi", indications: {
+    ra:        { label: "RA (Rheum)",        induction: [],      maint: 4,  packs: 1 },
+    psa:       { label: "PsA (Rheum)",       induction: [],      maint: 4,  packs: 1 },
+    as:        { label: "AS (Rheum)",        induction: [],      maint: 4,  packs: 1 },
+    uc:        { label: "UC (GI)",           induction: [0,2],   maint: 4,  packs: 2, indPacks: [4,2] }
+  }},
+  stelara: { name: "Stelara", indications: {
+    psoriasis: { label: "Psoriasis (Derm)",  induction: [0,4],   maint: 12, packs: 1 },
+    psa:       { label: "PsA (Rheum)",       induction: [0,4],   maint: 12, packs: 1 },
+    cd:        { label: "Crohn's (GI)",      induction: [0,8],   maint: 8,  packs: 1 },
+    uc:        { label: "UC (GI)",           induction: [0,8],   maint: 8,  packs: 1 }
+  }}
 };
-
-const AREA_TAG = {
-  "Rheumatology": "tag-rheum",
-  "Dermatology": "tag-derm",
-  "Gastroenterology": "tag-gi"
-};
-
 const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+const MULTIPLIERS = [["1.25","×1.25"],["1.5","×1.5"],["2","×2"],["3","×3"]];
 
-/* ============================================================
-   STATE
-   ============================================================ */
-let patients = [];   // new patients
-let carryover = [];  // [{drug, indication, count}]
-let reduced = [];    // [{drug, indication, count, intervalMultiplier}]
+let lists = { new: [], carry: [], red: [] };
 let nextId = 1;
 
-/* ============================================================
-   CORE CALCULATION
-   ============================================================ */
-function calcPatient(p) {
-  const drug = DRUGS[p.drug];
-  const ind = drug.indications[p.indication];
-  if (!ind) return { inductionDoses: 0, maintenanceDoses: 0, packs: 0 };
-
-  // Convert start month (1-12) -> week of year (approx, mid-month)
-  const startWeek = (p.startMonth - 1) * 4.345;
-  const yearEndWeek = 52;
-
-  // Induction
-  let inductionDoses = 0;
-  let inductionPacks = 0;
-  ind.induction.forEach((wk, i) => {
-    if (startWeek + wk < yearEndWeek) {
-      inductionDoses++;
-      inductionPacks += (ind.inductionPacks ? ind.inductionPacks[i] : ind.packsPerDose);
-    }
-  });
-
-  // Maintenance — starts after last induction dose, at maintenance interval
-  let maintenanceDoses = 0;
-  const lastIndWk = ind.induction.length ? ind.induction[ind.induction.length - 1] : 0;
-  let nextWk = lastIndWk + ind.maintenanceIntervalWk;
-  // Simponi w/o induction: first dose at wk 0, then q4w
-  if (ind.induction.length === 0) {
-    nextWk = 0;
-  }
-  while (startWeek + nextWk < yearEndWeek) {
-    maintenanceDoses++;
-    nextWk += ind.maintenanceIntervalWk;
-  }
-  const maintenancePacks = maintenanceDoses * ind.packsPerDose;
-
-  return {
-    inductionDoses,
-    maintenanceDoses,
-    packs: inductionPacks + maintenancePacks,
-    packsPerDose: ind.packsPerDose
-  };
+function drugOpts() {
+  return Object.entries(DRUGS).map(([k,v]) => `<option value="${k}">${v.name}</option>`).join("");
+}
+function indOpts(d) {
+  return Object.entries(DRUGS[d].indications).map(([k,v]) => `<option value="${k}">${v.label}</option>`).join("");
+}
+function monthOpts() {
+  return MONTHS.map((m,i) => `<option value="${i+1}">${m}</option>`).join("");
 }
 
-function calcCarryover(c) {
+function calcNew(p) {
+  const ind = DRUGS[p.drug].indications[p.indication];
+  if (!ind) return 0;
+  const sw = (p.month - 1) * 4.345;
+  let packs = 0;
+  ind.induction.forEach((wk, i) => {
+    if (sw + wk < 52) packs += ind.indPacks ? ind.indPacks[i] : ind.packs;
+  });
+  const lastInd = ind.induction.length ? ind.induction[ind.induction.length-1] : 0;
+  let nextWk = ind.induction.length ? lastInd + ind.maint : 0;
+  while (sw + nextWk < 52) { packs += ind.packs; nextWk += ind.maint; }
+  return packs * p.count;
+}
+function calcCarry(c) {
   const ind = DRUGS[c.drug].indications[c.indication];
   if (!ind) return 0;
-  const dosesPerYear = Math.floor(52 / ind.maintenanceIntervalWk);
-  return dosesPerYear * ind.packsPerDose * c.count;
+  return Math.floor(52 / ind.maint) * ind.packs * c.count;
 }
-
-function calcReduced(r) {
+function calcRed(r) {
   const ind = DRUGS[r.drug].indications[r.indication];
   if (!ind) return 0;
-  const adjustedInterval = ind.maintenanceIntervalWk * r.intervalMultiplier;
-  const dosesPerYear = Math.floor(52 / adjustedInterval);
-  return dosesPerYear * ind.packsPerDose * r.count;
+  return Math.floor(52 / (ind.maint * r.mult)) * ind.packs * r.count;
 }
 
-/* ============================================================
-   RENDERING
-   ============================================================ */
-function indicationOptions(drugKey) {
-  if (!drugKey) return "";
-  return Object.entries(DRUGS[drugKey].indications)
-    .map(([k, v]) => `<option value="${k}">${v.label} — ${v.area}</option>`)
-    .join("");
+function rowHtml(type, item) {
+  const extras = type === "new"
+    ? `<select class="month" data-f="month">${monthOpts()}</select>`
+    : type === "red"
+      ? `<select class="month" data-f="mult">${MULTIPLIERS.map(m=>`<option value="${m[0]}">${m[1]}</option>`).join("")}</select>`
+      : "";
+  return `<div class="row" data-id="${item.id}">
+    <select class="drug" data-f="drug">${drugOpts()}</select>
+    <select class="indication" data-f="indication">${indOpts(item.drug)}</select>
+    ${extras}
+    <input class="count" type="number" min="1" data-f="count" value="${item.count}" />
+    <button class="x" data-rm>×</button>
+  </div>`;
 }
 
-function drugOptions() {
-  return Object.entries(DRUGS).map(([k, v]) => `<option value="${k}">${v.name}</option>`).join("");
-}
-
-function monthOptions() {
-  return MONTHS.map((m, i) => `<option value="${i+1}">${m}</option>`).join("");
-}
-
-function renderPatients() {
-  const container = document.getElementById("newPatients");
-  container.innerHTML = patients.map(p => `
-    <div class="patient-row" data-id="${p.id}">
-      <div>
-        <label>Patient ID</label>
-        <input type="text" data-field="name" value="${p.name}" />
-      </div>
-      <div>
-        <label>Drug</label>
-        <select data-field="drug">${drugOptions()}</select>
-      </div>
-      <div>
-        <label>Indication</label>
-        <select data-field="indication">${indicationOptions(p.drug)}</select>
-      </div>
-      <div>
-        <label>Start Month</label>
-        <select data-field="startMonth">${monthOptions()}</select>
-      </div>
-      <div>
-        <label>Weight (kg)</label>
-        <input type="number" data-field="weight" value="${p.weight}" min="20" max="200" />
-      </div>
-      <div>
-        <label>Count</label>
-        <input type="number" data-field="count" value="${p.count}" min="1" max="999" />
-      </div>
-      <button class="remove-btn" data-action="remove">×</button>
-    </div>
-  `).join("");
-
-  // Set selected values
-  patients.forEach(p => {
-    const row = container.querySelector(`[data-id="${p.id}"]`);
-    row.querySelector('[data-field="drug"]').value = p.drug;
-    row.querySelector('[data-field="indication"]').value = p.indication;
-    row.querySelector('[data-field="startMonth"]').value = p.startMonth;
+function render() {
+  ["new","carry","red"].forEach(type => {
+    const el = document.getElementById(type === "new" ? "new" : type);
+    el.innerHTML = lists[type].map(i => rowHtml(type, i)).join("");
+    lists[type].forEach(item => {
+      const row = el.querySelector(`[data-id="${item.id}"]`);
+      row.querySelector('[data-f="drug"]').value = item.drug;
+      row.querySelector('[data-f="indication"]').value = item.indication;
+      if (type === "new") row.querySelector('[data-f="month"]').value = item.month;
+      if (type === "red") row.querySelector('[data-f="mult"]').value = item.mult;
+    });
   });
+
+  const agg = {}; Object.keys(DRUGS).forEach(d => agg[d] = {n:0,c:0,r:0});
+  let tN=0, tC=0, tR=0;
+  lists.new.forEach(p => { const v=calcNew(p); agg[p.drug].n+=v; tN+=v; });
+  lists.carry.forEach(c => { const v=calcCarry(c); agg[c.drug].c+=v; tC+=v; });
+  lists.red.forEach(r => { const v=calcRed(r); agg[r.drug].r+=v; tR+=v; });
+
+  document.getElementById("tNew").textContent = tN;
+  document.getElementById("tCarry").textContent = tC;
+  document.getElementById("tRed").textContent = tR;
+  document.getElementById("total").textContent = tN + tC + tR;
+
+  document.querySelector("#breakdown tbody").innerHTML = Object.entries(agg).map(([k,v]) =>
+    `<tr><td>${DRUGS[k].name}</td><td class="num">${v.n}</td><td class="num">${v.c}</td><td class="num">${v.r}</td><td class="num"><strong>${v.n+v.c+v.r}</strong></td></tr>`
+  ).join("");
 }
 
-function renderCarryover() {
-  const container = document.getElementById("carryoverList");
-  container.innerHTML = carryover.map(c => `
-    <div class="patient-row" data-id="${c.id}" style="grid-template-columns: 1.4fr 1.4fr 90px 40px;">
-      <div>
-        <label>Drug</label>
-        <select data-field="drug">${drugOptions()}</select>
-      </div>
-      <div>
-        <label>Indication</label>
-        <select data-field="indication">${indicationOptions(c.drug)}</select>
-      </div>
-      <div>
-        <label># Patients</label>
-        <input type="number" data-field="count" value="${c.count}" min="1" max="999" />
-      </div>
-      <button class="remove-btn" data-action="remove">×</button>
-    </div>
-  `).join("");
-  carryover.forEach(c => {
-    const row = container.querySelector(`[data-id="${c.id}"]`);
-    row.querySelector('[data-field="drug"]').value = c.drug;
-    row.querySelector('[data-field="indication"]').value = c.indication;
-  });
+function addItem(type) {
+  const base = { id: nextId++, drug: "tremfya", indication: "psoriasis", count: 1 };
+  if (type === "new") base.month = new Date().getMonth() + 1;
+  if (type === "red") base.mult = 1.5;
+  if (type === "carry") base.count = 5;
+  lists[type].push(base);
+  render();
 }
 
-function renderReduced() {
-  const container = document.getElementById("reductionList");
-  container.innerHTML = reduced.map(r => `
-    <div class="patient-row" data-id="${r.id}" style="grid-template-columns: 1.3fr 1.3fr 80px 110px 40px;">
-      <div>
-        <label>Drug</label>
-        <select data-field="drug">${drugOptions()}</select>
-      </div>
-      <div>
-        <label>Indication</label>
-        <select data-field="indication">${indicationOptions(r.drug)}</select>
-      </div>
-      <div>
-        <label># Patients</label>
-        <input type="number" data-field="count" value="${r.count}" min="1" max="999" />
-      </div>
-      <div>
-        <label>Interval ×</label>
-        <select data-field="intervalMultiplier">
-          <option value="1.25">×1.25</option>
-          <option value="1.5">×1.5</option>
-          <option value="2">×2</option>
-          <option value="3">×3</option>
-        </select>
-      </div>
-      <button class="remove-btn" data-action="remove">×</button>
-    </div>
-  `).join("");
-  reduced.forEach(r => {
-    const row = container.querySelector(`[data-id="${r.id}"]`);
-    row.querySelector('[data-field="drug"]').value = r.drug;
-    row.querySelector('[data-field="indication"]').value = r.indication;
-    row.querySelector('[data-field="intervalMultiplier"]').value = r.intervalMultiplier;
-  });
-}
-
-function renderResults() {
-  // Aggregate by drug
-  const agg = {};
-  Object.keys(DRUGS).forEach(d => agg[d] = { newP: 0, carry: 0, red: 0 });
-
-  patients.forEach(p => {
-    const r = calcPatient(p);
-    agg[p.drug].newP += r.packs * p.count;
-  });
-  carryover.forEach(c => { agg[c.drug].carry += calcCarryover(c); });
-  reduced.forEach(r => { agg[r.drug].red += calcReduced(r); });
-
-  let totN = 0, totC = 0, totR = 0;
-  Object.values(agg).forEach(a => { totN += a.newP; totC += a.carry; totR += a.red; });
-
-  document.getElementById("totalNew").textContent = totN;
-  document.getElementById("totalCarry").textContent = totC;
-  document.getElementById("totalReduced").textContent = totR;
-  document.getElementById("totalGrand").textContent = totN + totC + totR;
-
-  // Drug breakdown table
-  const tbody = document.querySelector("#drugBreakdown tbody");
-  tbody.innerHTML = Object.entries(agg).map(([k, v]) => `
-    <tr>
-      <td><strong>${DRUGS[k].name}</strong></td>
-      <td>${v.newP}</td>
-      <td>${v.carry}</td>
-      <td>${v.red}</td>
-      <td><strong>${v.newP + v.carry + v.red}</strong></td>
-    </tr>
-  `).join("");
-
-  // Per-patient detail
-  const pbody = document.querySelector("#patientDetail tbody");
-  pbody.innerHTML = patients.map((p, i) => {
-    const r = calcPatient(p);
-    const ind = DRUGS[p.drug].indications[p.indication];
-    const tag = ind ? AREA_TAG[ind.area] : "";
-    return `
-      <tr>
-        <td>${i+1}</td>
-        <td>${DRUGS[p.drug].name}</td>
-        <td><span class="indication-tag ${tag}">${ind ? ind.area : "?"}</span> ${ind ? ind.label : ""}</td>
-        <td>${MONTHS[p.startMonth-1]}</td>
-        <td>${r.inductionDoses}</td>
-        <td>${r.maintenanceDoses}</td>
-        <td>${r.packsPerDose || "—"}</td>
-        <td><strong>${r.packs * p.count}</strong>${p.count > 1 ? ` <span class="pill">×${p.count}</span>` : ""}</td>
-      </tr>
-    `;
-  }).join("");
-}
-
-function renderAll() {
-  renderPatients();
-  renderCarryover();
-  renderReduced();
-  renderResults();
-}
-
-/* ============================================================
-   EVENT HANDLERS
-   ============================================================ */
-function bindRow(container, list) {
-  container.addEventListener("change", e => {
-    const row = e.target.closest("[data-id]");
-    if (!row) return;
-    const id = +row.dataset.id;
-    const item = list.find(x => x.id === id);
-    const field = e.target.dataset.field;
-    if (!field) return;
-    let val = e.target.value;
-    if (["startMonth", "count", "weight"].includes(field)) val = +val;
-    if (field === "intervalMultiplier") val = +val;
-    item[field] = val;
-    if (field === "drug") {
-      // reset indication to first available
-      item.indication = Object.keys(DRUGS[val].indications)[0];
-    }
-    renderAll();
-  });
-  container.addEventListener("click", e => {
-    if (e.target.dataset.action !== "remove") return;
-    const row = e.target.closest("[data-id]");
-    const id = +row.dataset.id;
-    const idx = list.findIndex(x => x.id === id);
-    list.splice(idx, 1);
-    renderAll();
-  });
-}
-
-document.getElementById("addPatient").addEventListener("click", () => {
-  patients.push({
-    id: nextId++,
-    name: `P-${patients.length + 1}`,
-    drug: "tremfya",
-    indication: "psoriasis",
-    startMonth: new Date().getMonth() + 1,
-    weight: 70,
-    count: 1
-  });
-  renderAll();
+document.querySelectorAll("[data-add]").forEach(btn => {
+  btn.addEventListener("click", () => addItem(btn.dataset.add));
 });
 
-document.getElementById("addCarryover").addEventListener("click", () => {
-  carryover.push({
-    id: nextId++,
-    drug: "stelara",
-    indication: "cd",
-    count: 5
-  });
-  renderAll();
+document.body.addEventListener("change", e => {
+  const row = e.target.closest("[data-id]");
+  if (!row) return;
+  const type = row.parentElement.id === "new" ? "new" : row.parentElement.id === "carry" ? "carry" : "red";
+  const item = lists[type].find(x => x.id === +row.dataset.id);
+  const f = e.target.dataset.f;
+  let v = e.target.value;
+  if (["month","count"].includes(f)) v = +v;
+  if (f === "mult") v = +v;
+  item[f] = v;
+  if (f === "drug") item.indication = Object.keys(DRUGS[v].indications)[0];
+  render();
 });
 
-document.getElementById("addReduction").addEventListener("click", () => {
-  reduced.push({
-    id: nextId++,
-    drug: "tremfya",
-    indication: "psoriasis",
-    count: 2,
-    intervalMultiplier: 1.5
-  });
-  renderAll();
+document.body.addEventListener("click", e => {
+  if (!e.target.hasAttribute("data-rm")) return;
+  const row = e.target.closest("[data-id]");
+  const type = row.parentElement.id === "new" ? "new" : row.parentElement.id === "carry" ? "carry" : "red";
+  lists[type] = lists[type].filter(x => x.id !== +row.dataset.id);
+  render();
 });
 
-document.getElementById("loadExample").addEventListener("click", () => {
-  patients = [
-    { id: nextId++, name: "P-1", drug: "tremfya",  indication: "psoriasis", startMonth: 2, weight: 75, count: 3 },
-    { id: nextId++, name: "P-2", drug: "stelara",  indication: "cd",        startMonth: 4, weight: 80, count: 2 },
-    { id: nextId++, name: "P-3", drug: "simponi",  indication: "ra",        startMonth: 6, weight: 70, count: 5 },
-    { id: nextId++, name: "P-4", drug: "remicade", indication: "uc",        startMonth: 1, weight: 78, count: 1 }
-  ];
-  carryover = [
-    { id: nextId++, drug: "stelara", indication: "psoriasis", count: 12 },
-    { id: nextId++, drug: "tremfya", indication: "psa",       count: 8 }
-  ];
-  reduced = [
-    { id: nextId++, drug: "stelara", indication: "psoriasis", count: 3, intervalMultiplier: 1.5 }
-  ];
-  renderAll();
-});
-
-bindRow(document.getElementById("newPatients"), patients);
-bindRow(document.getElementById("carryoverList"), carryover);
-bindRow(document.getElementById("reductionList"), reduced);
-
-// Seed with one patient row
-document.getElementById("addPatient").click();
+addItem("new");
 </script>
 </body>
 </html>
