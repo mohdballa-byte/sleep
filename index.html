@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Biologic Pack Calculator</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    background: #fafafa;
+    color: #222;
+    font-size: 15px;
+    line-height: 1.5;
+  }
+  .wrap {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 32px 20px 60px;
+  }
+  h1 {
+    font-size: 22px;
+    margin: 0 0 4px;
+    font-weight: 600;
+  }
+  .sub {
+    color: #888;
+    font-size: 13px;
+    margin-bottom: 32px;
+  }
+  h2 {
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #888;
+    margin: 32px 0 12px;
+    font-weight: 600;
+  }
+  .row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    background: white;
+    border: 1px solid #e5e5e5;
+    border-radius: 8px;
+    padding: 10px 12px;
+    margin-bottom: 8px;
+  }
+  .row select, .row input {
+    border: none;
+    background: transparent;
+    font-size: 14px;
+    padding: 4px 6px;
+    color: #222;
+    min-width: 0;
+  }
+  .row select:focus, .row input:focus {
+    outline: none;
+    background: #f4f4f4;
+    border-radius: 4px;
+  }
+  .row .drug { flex: 1.5; }
+  .row .indication { flex: 1.5; }
+  .row .month { flex: 1; }
+  .row .count { width: 60px; text-align: center; }
+  .row .x {
+    background: none;
+    border: none;
+    color: #c00;
+    font-size: 18px;
+    cursor: pointer;
+    padding: 0 4px;
+  }
+  .row .x:hover { color: #800; }
+  .add {
+    background: white;
+    border: 1px dashed #bbb;
+    color: #666;
+    padding: 10px 14px;
+    border-radius: 8px;
+    width: 100%;
+    cursor: pointer;
+    font-size: 13px;
+  }
+  .add:hover { border-color: #888; color: #222; }
+  .result {
+    background: #222;
+    color: white;
+    border-radius: 10px;
+    padding: 24px;
+    margin-top: 40px;
+    text-align: center;
+  }
+  .result .big {
+    font-size: 48px;
+    font-weight: 700;
+    line-height: 1;
+  }
+  .result .lbl {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #999;
+    margin-top: 6px;
+  }
+  .split {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid #444;
+  }
+  .split div { text-align: center; }
+  .split .v { font-size: 20px; font-weight: 600; }
+  .split .l { font-size: 11px; color: #999; text-transform: uppercase; }
+  details {
+    margin-top: 20px;
+    background: white;
+    border: 1px solid #e5e5e5;
+    border-radius: 8px;
+    padding: 12px 16px;
+  }
+  details summary {
+    cursor: pointer;
+    font-size: 13px;
+    color: #555;
+    font-weight: 500;
+  }
+  table { width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 13px; }
+  th, td { text-align: left; padding: 6px 4px; border-bottom: 1px solid #eee; }
+  th { color: #888; font-weight: 500; font-size: 11px; text-transform: uppercase; }
+  td.num { text-align: right; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Biologic Pack Calculator</h1>
+  <div class="sub">Forecast annual packs for J&amp;J biologics — induction + maintenance to year-end.</div>
+
+  <h2>New Patients</h2>
+  <div id="new"></div>
+  <button class="add" data-add="new">+ Add patient</button>
+
+  <h2>Carryover Patients</h2>
+  <div id="carry"></div>
+  <button class="add" data-add="carry">+ Add carryover</button>
+
+  <h2>Dose Reduction</h2>
+  <div id="red"></div>
+  <button class="add" data-add="red">+ Add reduced-dose group</button>
+
+  <div class="result">
+    <div class="big" id="total">0</div>
+    <div class="lbl">Total Packs to Order</div>
+    <div class="split">
+      <div><div class="v" id="tNew">0</div><div class="l">New</div></div>
+      <div><div class="v" id="tCarry">0</div><div class="l">Carryover</div></div>
+      <div><div class="v" id="tRed">0</div><div class="l">Reduced</div></div>
+    </div>
+  </div>
+
+  <details>
+    <summary>Breakdown by drug</summary>
+    <table id="breakdown">
+      <thead><tr><th>Drug</th><th class="num">New</th><th class="num">Carry</th><th class="num">Red</th><th class="num">Total</th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </details>
+</div>
+
+<script>
+const DRUGS = {
+  tremfya: { name: "Tremfya", indications: {
+    psoriasis: { label: "Psoriasis (Derm)",  induction: [0,4],   maint: 8,  packs: 1 },
+    psa:       { label: "PsA (Rheum)",       induction: [0,4],   maint: 8,  packs: 1 },
+    uc:        { label: "UC (GI)",           induction: [0,4,8], maint: 8,  packs: 2 },
+    cd:        { label: "Crohn's (GI)",      induction: [0,4,8], maint: 8,  packs: 2 }
+  }},
+  remicade: { name: "Remicade", indications: {
+    ra:        { label: "RA (Rheum)",        induction: [0,2,6], maint: 8,  packs: 3 },
+    as:        { label: "AS (Rheum)",        induction: [0,2,6], maint: 6,  packs: 4 },
+    psa:       { label: "PsA (Rheum)",       induction: [0,2,6], maint: 8,  packs: 3 },
+    psoriasis: { label: "Psoriasis (Derm)",  induction: [0,2,6], maint: 8,  packs: 3 },
+    cd:        { label: "Crohn's (GI)",      induction: [0,2,6], maint: 8,  packs: 3 },
+    uc:        { label: "UC (GI)",           induction: [0,2,6], maint: 8,  packs: 3 }
+  }},
+  simponi: { name: "Simponi", indications: {
+    ra:        { label: "RA (Rheum)",        induction: [],      maint: 4,  packs: 1 },
+    psa:       { label: "PsA (Rheum)",       induction: [],      maint: 4,  packs: 1 },
+    as:        { label: "AS (Rheum)",        induction: [],      maint: 4,  packs: 1 },
+    uc:        { label: "UC (GI)",           induction: [0,2],   maint: 4,  packs: 2, indPacks: [4,2] }
+  }},
+  stelara: { name: "Stelara", indications: {
+    psoriasis: { label: "Psoriasis (Derm)",  induction: [0,4],   maint: 12, packs: 1 },
+    psa:       { label: "PsA (Rheum)",       induction: [0,4],   maint: 12, packs: 1 },
+    cd:        { label: "Crohn's (GI)",      induction: [0,8],   maint: 8,  packs: 1 },
+    uc:        { label: "UC (GI)",           induction: [0,8],   maint: 8,  packs: 1 }
+  }}
+};
+const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+const MULTIPLIERS = [["1.25","×1.25"],["1.5","×1.5"],["2","×2"],["3","×3"]];
+
+let lists = { new: [], carry: [], red: [] };
+let nextId = 1;
+
+function drugOpts() {
+  return Object.entries(DRUGS).map(([k,v]) => `<option value="${k}">${v.name}</option>`).join("");
+}
+function indOpts(d) {
+  return Object.entries(DRUGS[d].indications).map(([k,v]) => `<option value="${k}">${v.label}</option>`).join("");
+}
+function monthOpts() {
+  return MONTHS.map((m,i) => `<option value="${i+1}">${m}</option>`).join("");
+}
+
+function calcNew(p) {
+  const ind = DRUGS[p.drug].indications[p.indication];
+  if (!ind) return 0;
+  const sw = (p.month - 1) * 4.345;
+  let packs = 0;
+  ind.induction.forEach((wk, i) => {
+    if (sw + wk < 52) packs += ind.indPacks ? ind.indPacks[i] : ind.packs;
+  });
+  const lastInd = ind.induction.length ? ind.induction[ind.induction.length-1] : 0;
+  let nextWk = ind.induction.length ? lastInd + ind.maint : 0;
+  while (sw + nextWk < 52) { packs += ind.packs; nextWk += ind.maint; }
+  return packs * p.count;
+}
+function calcCarry(c) {
+  const ind = DRUGS[c.drug].indications[c.indication];
+  if (!ind) return 0;
+  return Math.floor(52 / ind.maint) * ind.packs * c.count;
+}
+function calcRed(r) {
+  const ind = DRUGS[r.drug].indications[r.indication];
+  if (!ind) return 0;
+  return Math.floor(52 / (ind.maint * r.mult)) * ind.packs * r.count;
+}
+
+function rowHtml(type, item) {
+  const extras = type === "new"
+    ? `<select class="month" data-f="month">${monthOpts()}</select>`
+    : type === "red"
+      ? `<select class="month" data-f="mult">${MULTIPLIERS.map(m=>`<option value="${m[0]}">${m[1]}</option>`).join("")}</select>`
+      : "";
+  return `<div class="row" data-id="${item.id}">
+    <select class="drug" data-f="drug">${drugOpts()}</select>
+    <select class="indication" data-f="indication">${indOpts(item.drug)}</select>
+    ${extras}
+    <input class="count" type="number" min="1" data-f="count" value="${item.count}" />
+    <button class="x" data-rm>×</button>
+  </div>`;
+}
+
+function render() {
+  ["new","carry","red"].forEach(type => {
+    const el = document.getElementById(type === "new" ? "new" : type);
+    el.innerHTML = lists[type].map(i => rowHtml(type, i)).join("");
+    lists[type].forEach(item => {
+      const row = el.querySelector(`[data-id="${item.id}"]`);
+      row.querySelector('[data-f="drug"]').value = item.drug;
+      row.querySelector('[data-f="indication"]').value = item.indication;
+      if (type === "new") row.querySelector('[data-f="month"]').value = item.month;
+      if (type === "red") row.querySelector('[data-f="mult"]').value = item.mult;
+    });
+  });
+
+  const agg = {}; Object.keys(DRUGS).forEach(d => agg[d] = {n:0,c:0,r:0});
+  let tN=0, tC=0, tR=0;
+  lists.new.forEach(p => { const v=calcNew(p); agg[p.drug].n+=v; tN+=v; });
+  lists.carry.forEach(c => { const v=calcCarry(c); agg[c.drug].c+=v; tC+=v; });
+  lists.red.forEach(r => { const v=calcRed(r); agg[r.drug].r+=v; tR+=v; });
+
+  document.getElementById("tNew").textContent = tN;
+  document.getElementById("tCarry").textContent = tC;
+  document.getElementById("tRed").textContent = tR;
+  document.getElementById("total").textContent = tN + tC + tR;
+
+  document.querySelector("#breakdown tbody").innerHTML = Object.entries(agg).map(([k,v]) =>
+    `<tr><td>${DRUGS[k].name}</td><td class="num">${v.n}</td><td class="num">${v.c}</td><td class="num">${v.r}</td><td class="num"><strong>${v.n+v.c+v.r}</strong></td></tr>`
+  ).join("");
+}
+
+function addItem(type) {
+  const base = { id: nextId++, drug: "tremfya", indication: "psoriasis", count: 1 };
+  if (type === "new") base.month = new Date().getMonth() + 1;
+  if (type === "red") base.mult = 1.5;
+  if (type === "carry") base.count = 5;
+  lists[type].push(base);
+  render();
+}
+
+document.querySelectorAll("[data-add]").forEach(btn => {
+  btn.addEventListener("click", () => addItem(btn.dataset.add));
+});
+
+document.body.addEventListener("change", e => {
+  const row = e.target.closest("[data-id]");
+  if (!row) return;
+  const type = row.parentElement.id === "new" ? "new" : row.parentElement.id === "carry" ? "carry" : "red";
+  const item = lists[type].find(x => x.id === +row.dataset.id);
+  const f = e.target.dataset.f;
+  let v = e.target.value;
+  if (["month","count"].includes(f)) v = +v;
+  if (f === "mult") v = +v;
+  item[f] = v;
+  if (f === "drug") item.indication = Object.keys(DRUGS[v].indications)[0];
+  render();
+});
+
+document.body.addEventListener("click", e => {
+  if (!e.target.hasAttribute("data-rm")) return;
+  const row = e.target.closest("[data-id]");
+  const type = row.parentElement.id === "new" ? "new" : row.parentElement.id === "carry" ? "carry" : "red";
+  lists[type] = lists[type].filter(x => x.id !== +row.dataset.id);
+  render();
+});
+
+addItem("new");
+</script>
+</body>
+</html>
