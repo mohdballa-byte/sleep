@@ -106,15 +106,15 @@
   }
   .split {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(4, 1fr);
     gap: 12px;
     margin-top: 20px;
     padding-top: 20px;
     border-top: 1px solid #444;
   }
   .split div { text-align: center; }
-  .split .v { font-size: 20px; font-weight: 600; }
-  .split .l { font-size: 11px; color: #999; text-transform: uppercase; }
+  .split .v { font-size: 18px; font-weight: 600; }
+  .split .l { font-size: 10px; color: #999; text-transform: uppercase; }
   details {
     margin-top: 20px;
     background: white;
@@ -132,12 +132,64 @@
   th, td { text-align: left; padding: 6px 4px; border-bottom: 1px solid #eee; }
   th { color: #888; font-weight: 500; font-size: 11px; text-transform: uppercase; }
   td.num { text-align: right; }
+  .switch-box {
+    background: #fff;
+    border: 1px solid #e5e5e5;
+    border-radius: 8px;
+    padding: 14px;
+    margin-bottom: 8px;
+  }
+  .switch-box .top {
+    display: grid;
+    grid-template-columns: 1fr 110px 110px 110px;
+    gap: 8px;
+    align-items: end;
+    margin-bottom: 12px;
+  }
+  .switch-box label {
+    display: block;
+    font-size: 11px;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    margin-bottom: 3px;
+    font-weight: 600;
+  }
+  .switch-box input, .switch-box select {
+    width: 100%;
+    padding: 6px 8px;
+    border: 1px solid #e5e5e5;
+    border-radius: 5px;
+    font-size: 13px;
+    background: white;
+  }
+  .alloc {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 8px;
+    padding-top: 10px;
+    border-top: 1px dashed #ddd;
+  }
+  .alloc .item { text-align: center; }
+  .alloc .item input { text-align: center; }
+  .alloc .item .out {
+    font-size: 13px;
+    color: #1c8a4a;
+    font-weight: 600;
+    margin-top: 4px;
+  }
+  .info {
+    font-size: 12px;
+    color: #888;
+    margin-top: 8px;
+  }
+  .info b { color: #c00; }
 </style>
 </head>
 <body>
 <div class="wrap">
   <h1>Biologic Pack Calculator</h1>
-  <div class="sub">Forecast annual packs for J&amp;J biologics — induction + maintenance to year-end.</div>
+  <div class="sub">Forecast annual packs for J&amp;J biologics + Humira switch modelling.</div>
 
   <h2>New Patients</h2>
   <div id="new"></div>
@@ -151,6 +203,10 @@
   <div id="red"></div>
   <button class="add" data-add="red">+ Add reduced-dose group</button>
 
+  <h2>Humira (Adalimumab) Dropout → Switch</h2>
+  <div id="hum"></div>
+  <button class="add" data-add="hum">+ Add Humira cohort</button>
+
   <div class="result">
     <div class="big" id="total">0</div>
     <div class="lbl">Total Packs to Order</div>
@@ -158,13 +214,14 @@
       <div><div class="v" id="tNew">0</div><div class="l">New</div></div>
       <div><div class="v" id="tCarry">0</div><div class="l">Carryover</div></div>
       <div><div class="v" id="tRed">0</div><div class="l">Reduced</div></div>
+      <div><div class="v" id="tSwitch">0</div><div class="l">Switch (Humira)</div></div>
     </div>
   </div>
 
   <details>
     <summary>Breakdown by drug</summary>
     <table id="breakdown">
-      <thead><tr><th>Drug</th><th class="num">New</th><th class="num">Carry</th><th class="num">Red</th><th class="num">Total</th></tr></thead>
+      <thead><tr><th>Drug</th><th class="num">New</th><th class="num">Carry</th><th class="num">Red</th><th class="num">Switch</th><th class="num">Total</th></tr></thead>
       <tbody></tbody>
     </table>
   </details>
@@ -199,10 +256,15 @@ const DRUGS = {
     uc:        { label: "UC (GI)",           induction: [0,8],   maint: 8,  packs: 1 }
   }}
 };
+
+const HUMIRA = { name: "Humira (adalimumab)", maint: 2, packs: 1 };
+
+const SWITCH_TARGETS = ["tremfya", "stelara", "simponi"];
+
 const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 const MULTIPLIERS = [["1.25","×1.25"],["1.5","×1.5"],["2","×2"],["3","×3"]];
 
-let lists = { new: [], carry: [], red: [] };
+let lists = { new: [], carry: [], red: [], hum: [] };
 let nextId = 1;
 
 function drugOpts() {
@@ -215,10 +277,10 @@ function monthOpts() {
   return MONTHS.map((m,i) => `<option value="${i+1}">${m}</option>`).join("");
 }
 
-function calcNew(p) {
-  const ind = DRUGS[p.drug].indications[p.indication];
+function packsForPatient(drugKey, indicationKey, startMonth) {
+  const ind = DRUGS[drugKey].indications[indicationKey];
   if (!ind) return 0;
-  const sw = (p.month - 1) * 4.345;
+  const sw = (startMonth - 1) * 4.345;
   let packs = 0;
   ind.induction.forEach((wk, i) => {
     if (sw + wk < 52) packs += ind.indPacks ? ind.indPacks[i] : ind.packs;
@@ -226,17 +288,32 @@ function calcNew(p) {
   const lastInd = ind.induction.length ? ind.induction[ind.induction.length-1] : 0;
   let nextWk = ind.induction.length ? lastInd + ind.maint : 0;
   while (sw + nextWk < 52) { packs += ind.packs; nextWk += ind.maint; }
-  return packs * p.count;
+  return packs;
 }
+
+function calcNew(p)   { return packsForPatient(p.drug, p.indication, p.month) * p.count; }
 function calcCarry(c) {
   const ind = DRUGS[c.drug].indications[c.indication];
-  if (!ind) return 0;
-  return Math.floor(52 / ind.maint) * ind.packs * c.count;
+  return ind ? Math.floor(52 / ind.maint) * ind.packs * c.count : 0;
 }
 function calcRed(r) {
   const ind = DRUGS[r.drug].indications[r.indication];
-  if (!ind) return 0;
-  return Math.floor(52 / (ind.maint * r.mult)) * ind.packs * r.count;
+  return ind ? Math.floor(52 / (ind.maint * r.mult)) * ind.packs * r.count : 0;
+}
+
+function calcHumira(h) {
+  const dropouts = Math.round(h.total * (h.dropout / 100));
+  const sumPct = h.allocTremfya + h.allocStelara + h.allocSimponi;
+  if (sumPct === 0) return { dropouts, switches: [] };
+  const switches = SWITCH_TARGETS.map(target => {
+    const pct = target === "tremfya" ? h.allocTremfya
+              : target === "stelara" ? h.allocStelara
+              : h.allocSimponi;
+    const patients = Math.round(dropouts * (pct / sumPct));
+    const packs = packsForPatient(target, h.indication, h.month) * patients;
+    return { drug: target, patients, packs };
+  });
+  return { dropouts, switches };
 }
 
 function rowHtml(type, item) {
@@ -254,9 +331,63 @@ function rowHtml(type, item) {
   </div>`;
 }
 
+function humiraHtml(h) {
+  const indSelectOpts = `
+    <option value="ra">RA (Rheum)</option>
+    <option value="psa">PsA (Rheum)</option>
+    <option value="as">AS (Rheum)</option>
+    <option value="psoriasis">Psoriasis (Derm)</option>
+    <option value="cd">Crohn's (GI)</option>
+    <option value="uc">UC (GI)</option>
+  `;
+  const calc = calcHumira(h);
+  const byTarget = Object.fromEntries(calc.switches.map(s => [s.drug, s]));
+  return `<div class="switch-box" data-id="${h.id}">
+    <div class="top">
+      <div>
+        <label>Humira Indication</label>
+        <select data-f="indication">${indSelectOpts}</select>
+      </div>
+      <div>
+        <label>Patients (Y1)</label>
+        <input type="number" min="0" data-f="total" value="${h.total}" />
+      </div>
+      <div>
+        <label>Dropout %</label>
+        <input type="number" min="0" max="100" data-f="dropout" value="${h.dropout}" />
+      </div>
+      <div>
+        <label>Switch Month</label>
+        <select data-f="month">${monthOpts()}</select>
+      </div>
+    </div>
+    <div class="alloc">
+      <div class="item">
+        <label>→ Tremfya %</label>
+        <input type="number" min="0" max="100" data-f="allocTremfya" value="${h.allocTremfya}" />
+        <div class="out">${byTarget.tremfya ? byTarget.tremfya.patients : 0} pts / ${byTarget.tremfya ? byTarget.tremfya.packs : 0} packs</div>
+      </div>
+      <div class="item">
+        <label>→ Stelara %</label>
+        <input type="number" min="0" max="100" data-f="allocStelara" value="${h.allocStelara}" />
+        <div class="out">${byTarget.stelara ? byTarget.stelara.patients : 0} pts / ${byTarget.stelara ? byTarget.stelara.packs : 0} packs</div>
+      </div>
+      <div class="item">
+        <label>→ Simponi %</label>
+        <input type="number" min="0" max="100" data-f="allocSimponi" value="${h.allocSimponi}" />
+        <div class="out">${byTarget.simponi ? byTarget.simponi.patients : 0} pts / ${byTarget.simponi ? byTarget.simponi.packs : 0} packs</div>
+      </div>
+    </div>
+    <div class="info">
+      <b>${calc.dropouts}</b> dropouts of ${h.total} Humira patients (${h.dropout}%) re-distributed across selected J&amp;J biologics.
+      <button class="x" data-rm style="float:right">×</button>
+    </div>
+  </div>`;
+}
+
 function render() {
   ["new","carry","red"].forEach(type => {
-    const el = document.getElementById(type === "new" ? "new" : type);
+    const el = document.getElementById(type);
     el.innerHTML = lists[type].map(i => rowHtml(type, i)).join("");
     lists[type].forEach(item => {
       const row = el.querySelector(`[data-id="${item.id}"]`);
@@ -267,28 +398,53 @@ function render() {
     });
   });
 
-  const agg = {}; Object.keys(DRUGS).forEach(d => agg[d] = {n:0,c:0,r:0});
-  let tN=0, tC=0, tR=0;
+  const humEl = document.getElementById("hum");
+  humEl.innerHTML = lists.hum.map(humiraHtml).join("");
+  lists.hum.forEach(h => {
+    const box = humEl.querySelector(`[data-id="${h.id}"]`);
+    box.querySelector('[data-f="indication"]').value = h.indication;
+    box.querySelector('[data-f="month"]').value = h.month;
+  });
+
+  const agg = {}; Object.keys(DRUGS).forEach(d => agg[d] = {n:0,c:0,r:0,s:0});
+  let tN=0, tC=0, tR=0, tS=0;
   lists.new.forEach(p => { const v=calcNew(p); agg[p.drug].n+=v; tN+=v; });
   lists.carry.forEach(c => { const v=calcCarry(c); agg[c.drug].c+=v; tC+=v; });
   lists.red.forEach(r => { const v=calcRed(r); agg[r.drug].r+=v; tR+=v; });
+  lists.hum.forEach(h => {
+    calcHumira(h).switches.forEach(s => { agg[s.drug].s += s.packs; tS += s.packs; });
+  });
 
   document.getElementById("tNew").textContent = tN;
   document.getElementById("tCarry").textContent = tC;
   document.getElementById("tRed").textContent = tR;
-  document.getElementById("total").textContent = tN + tC + tR;
+  document.getElementById("tSwitch").textContent = tS;
+  document.getElementById("total").textContent = tN + tC + tR + tS;
 
   document.querySelector("#breakdown tbody").innerHTML = Object.entries(agg).map(([k,v]) =>
-    `<tr><td>${DRUGS[k].name}</td><td class="num">${v.n}</td><td class="num">${v.c}</td><td class="num">${v.r}</td><td class="num"><strong>${v.n+v.c+v.r}</strong></td></tr>`
+    `<tr><td>${DRUGS[k].name}</td><td class="num">${v.n}</td><td class="num">${v.c}</td><td class="num">${v.r}</td><td class="num">${v.s}</td><td class="num"><strong>${v.n+v.c+v.r+v.s}</strong></td></tr>`
   ).join("");
 }
 
 function addItem(type) {
-  const base = { id: nextId++, drug: "tremfya", indication: "psoriasis", count: 1 };
-  if (type === "new") base.month = new Date().getMonth() + 1;
-  if (type === "red") base.mult = 1.5;
-  if (type === "carry") base.count = 5;
-  lists[type].push(base);
+  if (type === "hum") {
+    lists.hum.push({
+      id: nextId++,
+      indication: "ra",
+      total: 20,
+      dropout: 50,
+      month: 1,
+      allocTremfya: 40,
+      allocStelara: 40,
+      allocSimponi: 20
+    });
+  } else {
+    const base = { id: nextId++, drug: "tremfya", indication: "psoriasis", count: 1 };
+    if (type === "new") base.month = new Date().getMonth() + 1;
+    if (type === "red") base.mult = 1.5;
+    if (type === "carry") base.count = 5;
+    lists[type].push(base);
+  }
   render();
 }
 
@@ -299,21 +455,24 @@ document.querySelectorAll("[data-add]").forEach(btn => {
 document.body.addEventListener("change", e => {
   const row = e.target.closest("[data-id]");
   if (!row) return;
-  const type = row.parentElement.id === "new" ? "new" : row.parentElement.id === "carry" ? "carry" : "red";
+  const parentId = row.parentElement.id;
+  const type = parentId === "hum" ? "hum" : parentId;
   const item = lists[type].find(x => x.id === +row.dataset.id);
+  if (!item) return;
   const f = e.target.dataset.f;
   let v = e.target.value;
-  if (["month","count"].includes(f)) v = +v;
-  if (f === "mult") v = +v;
+  const numeric = ["month","count","mult","total","dropout","allocTremfya","allocStelara","allocSimponi"];
+  if (numeric.includes(f)) v = +v;
   item[f] = v;
-  if (f === "drug") item.indication = Object.keys(DRUGS[v].indications)[0];
+  if (f === "drug" && type !== "hum") item.indication = Object.keys(DRUGS[v].indications)[0];
   render();
 });
 
 document.body.addEventListener("click", e => {
   if (!e.target.hasAttribute("data-rm")) return;
   const row = e.target.closest("[data-id]");
-  const type = row.parentElement.id === "new" ? "new" : row.parentElement.id === "carry" ? "carry" : "red";
+  const parentId = row.parentElement.id;
+  const type = parentId === "hum" ? "hum" : parentId;
   lists[type] = lists[type].filter(x => x.id !== +row.dataset.id);
   render();
 });
