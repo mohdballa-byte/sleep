@@ -4,6 +4,8 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Biologic Pack Calculator</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 <style>
   * { box-sizing: border-box; }
   body {
@@ -184,6 +186,19 @@
     margin-top: 8px;
   }
   .info b { color: #c00; }
+  .export {
+    margin-top: 16px;
+    background: #0a6bbd;
+    color: white;
+    border: none;
+    padding: 12px 18px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    width: 100%;
+    cursor: pointer;
+  }
+  .export:hover { background: #084e8a; }
 </style>
 </head>
 <body>
@@ -217,6 +232,8 @@
       <div><div class="v" id="tSwitch">0</div><div class="l">Switch (Humira)</div></div>
     </div>
   </div>
+
+  <button class="export" id="exportPdf">⬇ Download PDF Report</button>
 
   <details>
     <summary>Breakdown by drug</summary>
@@ -487,6 +504,144 @@ document.body.addEventListener("click", e => {
 });
 
 addItem("new");
+
+/* ============================================================
+   PDF EXPORT
+   ============================================================ */
+function buildReportData() {
+  const agg = {};
+  Object.keys(DRUGS).forEach(d => agg[d] = { newPts: 0, carryPts: 0, redPts: 0, switchPts: 0, newPk: 0, carryPk: 0, redPk: 0, switchPk: 0 });
+  const flow = MONTHS.map(() => ({ new: 0, switch: 0 }));
+
+  lists.new.forEach(p => {
+    agg[p.drug].newPts += p.count;
+    agg[p.drug].newPk  += calcNew(p);
+    flow[p.month - 1].new += p.count;
+  });
+  lists.carry.forEach(c => {
+    agg[c.drug].carryPts += c.count;
+    agg[c.drug].carryPk  += calcCarry(c);
+  });
+  lists.red.forEach(r => {
+    agg[r.drug].redPts += r.count;
+    agg[r.drug].redPk  += calcRed(r);
+  });
+  lists.hum.forEach(h => {
+    calcHumira(h).switches.forEach(s => {
+      agg[s.drug].switchPts += s.patients;
+      agg[s.drug].switchPk  += s.packs;
+      flow[h.month - 1].switch += s.patients;
+    });
+  });
+
+  return { agg, flow };
+}
+
+document.getElementById("exportPdf").addEventListener("click", () => {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit: "pt", format: "a4" });
+  const today = new Date().toISOString().slice(0, 10);
+  const { agg, flow } = buildReportData();
+
+  // Header
+  doc.setFontSize(18).setFont(undefined, "bold");
+  doc.text("Biologic Pack Calculator — Annual Report", 40, 50);
+  doc.setFontSize(10).setFont(undefined, "normal").setTextColor(100);
+  doc.text(`Generated ${today}`, 40, 68);
+  doc.setTextColor(0);
+
+  // Year-end totals
+  let totPts = 0, totPk = 0;
+  Object.values(agg).forEach(v => {
+    totPts += v.newPts + v.carryPts + v.switchPts; // reduced counted within carryover usually; keep separate
+    totPk  += v.newPk + v.carryPk + v.redPk + v.switchPk;
+  });
+  let totRedPts = 0;
+  Object.values(agg).forEach(v => totRedPts += v.redPts);
+
+  doc.setFontSize(12).setFont(undefined, "bold");
+  doc.text("Year-End Totals", 40, 100);
+  doc.autoTable({
+    startY: 108,
+    head: [["Metric", "Value"]],
+    body: [
+      ["New patients",            Object.values(agg).reduce((s,v) => s+v.newPts, 0)],
+      ["Carryover patients",      Object.values(agg).reduce((s,v) => s+v.carryPts, 0)],
+      ["Dose-reduced patients",   totRedPts],
+      ["Switch patients (Humira)", Object.values(agg).reduce((s,v) => s+v.switchPts, 0)],
+      [{ content: "Total patients on therapy", styles: { fontStyle: "bold" } },
+       { content: totPts, styles: { fontStyle: "bold" } }],
+      [{ content: "Total packs to order",      styles: { fontStyle: "bold", textColor: [200,16,46] } },
+       { content: totPk,  styles: { fontStyle: "bold", textColor: [200,16,46] } }]
+    ],
+    theme: "grid",
+    styles: { fontSize: 10 },
+    headStyles: { fillColor: [34,34,34] }
+  });
+
+  // Breakdown by drug
+  doc.setFont(undefined, "bold").setFontSize(12);
+  doc.text("Breakdown by Drug", 40, doc.lastAutoTable.finalY + 28);
+  doc.autoTable({
+    startY: doc.lastAutoTable.finalY + 36,
+    head: [["Drug", "New pts", "Carry pts", "Red pts", "Switch pts", "Total pts", "Total packs"]],
+    body: Object.entries(agg).map(([k, v]) => [
+      DRUGS[k].name,
+      v.newPts, v.carryPts, v.redPts, v.switchPts,
+      v.newPts + v.carryPts + v.redPts + v.switchPts,
+      v.newPk + v.carryPk + v.redPk + v.switchPk
+    ]),
+    theme: "striped",
+    styles: { fontSize: 10, halign: "right" },
+    columnStyles: { 0: { halign: "left", fontStyle: "bold" } },
+    headStyles: { fillColor: [10,107,189] }
+  });
+
+  // Recruitment flow
+  doc.setFont(undefined, "bold").setFontSize(12);
+  doc.text("Recruitment Flow (patients onboarded by month)", 40, doc.lastAutoTable.finalY + 28);
+  doc.autoTable({
+    startY: doc.lastAutoTable.finalY + 36,
+    head: [["Month", "New patients", "Switched from Humira", "Total onboarded"]],
+    body: MONTHS.map((m, i) => [
+      m, flow[i].new, flow[i].switch, flow[i].new + flow[i].switch
+    ]),
+    foot: [["Total",
+      flow.reduce((s,f) => s+f.new, 0),
+      flow.reduce((s,f) => s+f.switch, 0),
+      flow.reduce((s,f) => s+f.new+f.switch, 0)
+    ]],
+    theme: "striped",
+    styles: { fontSize: 10, halign: "right" },
+    columnStyles: { 0: { halign: "left", fontStyle: "bold" } },
+    headStyles: { fillColor: [28,138,74] },
+    footStyles: { fillColor: [240,240,240], textColor: 0, fontStyle: "bold" }
+  });
+
+  // Per-patient details (if any new patients)
+  if (lists.new.length) {
+    doc.setFont(undefined, "bold").setFontSize(12);
+    doc.text("New-Patient Detail", 40, doc.lastAutoTable.finalY + 28);
+    doc.autoTable({
+      startY: doc.lastAutoTable.finalY + 36,
+      head: [["#", "Drug", "Indication", "Start", "Patients", "Packs"]],
+      body: lists.new.map((p, i) => {
+        const ind = DRUGS[p.drug].indications[p.indication];
+        return [i+1, DRUGS[p.drug].name, ind ? ind.label : "?", MONTHS[p.month-1], p.count, calcNew(p)];
+      }),
+      theme: "grid",
+      styles: { fontSize: 9 },
+      headStyles: { fillColor: [100,100,100] }
+    });
+  }
+
+  // Footer disclaimer
+  const pageH = doc.internal.pageSize.height;
+  doc.setFontSize(8).setTextColor(120);
+  doc.text("Decision-support output. Dosing schedules are simplified reference values for forecasting only — verify against current product SmPC before clinical use.", 40, pageH - 30, { maxWidth: 515 });
+
+  doc.save(`biologic-pack-report-${today}.pdf`);
+});
 </script>
 </body>
 </html>
