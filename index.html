@@ -253,12 +253,15 @@ const DRUGS = {
     cd:        { label: "Crohn's (GI)",      induction: [0,4,8], maint: 8,  packs: 2 }
   }},
   remicade: { name: "Remicade", indications: {
-    ra:        { label: "RA (Rheum)",        induction: [0,2,6], maint: 8,  packs: 3 },
-    as:        { label: "AS (Rheum)",        induction: [0,2,6], maint: 6,  packs: 4 },
-    psa:       { label: "PsA (Rheum)",       induction: [0,2,6], maint: 8,  packs: 3 },
-    psoriasis: { label: "Psoriasis (Derm)",  induction: [0,2,6], maint: 8,  packs: 3 },
-    cd:        { label: "Crohn's (GI)",      induction: [0,2,6], maint: 8,  packs: 3 },
-    uc:        { label: "UC (GI)",           induction: [0,2,6], maint: 8,  packs: 3 }
+    ra:        { label: "RA (Rheum) — 3 mg/kg q8w",         induction: [0,2,6], maint: 8, packs: 3 },
+    ra_esc:    { label: "RA — escalated 10 mg/kg q8w",      induction: [0,2,6], maint: 8, packs: 7 },
+    as:        { label: "AS (Rheum) — 5 mg/kg q6w",         induction: [0,2,6], maint: 6, packs: 4 },
+    as_esc:    { label: "AS — escalated 10 mg/kg q8w",      induction: [0,2,6], maint: 8, packs: 7 },
+    psa:       { label: "PsA (Rheum)",                       induction: [0,2,6], maint: 8, packs: 3 },
+    psoriasis: { label: "Psoriasis (Derm)",                  induction: [0,2,6], maint: 8, packs: 3 },
+    cd:        { label: "Crohn's (GI) — 5 mg/kg q8w",        induction: [0,2,6], maint: 8, packs: 4 },
+    cd_esc:    { label: "Crohn's — escalated 10 mg/kg q8w",  induction: [0,2,6], maint: 8, packs: 7 },
+    uc:        { label: "UC (GI)",                            induction: [0,2,6], maint: 8, packs: 3 }
   }},
   simponi: { name: "Simponi", indications: {
     ra:        { label: "RA (Rheum)",        induction: [],      maint: 4,  packs: 1 },
