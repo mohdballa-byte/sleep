@@ -21,183 +21,44 @@
     margin: 0 auto;
     padding: 32px 20px 60px;
   }
-  h1 {
-    font-size: 22px;
-    margin: 0 0 4px;
-    font-weight: 600;
-  }
-  .sub {
-    color: #888;
-    font-size: 13px;
-    margin-bottom: 32px;
-  }
-  h2 {
-    font-size: 14px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    color: #888;
-    margin: 32px 0 12px;
-    font-weight: 600;
-  }
-  .row {
-    display: flex;
-    gap: 8px;
-    align-items: center;
-    background: white;
-    border: 1px solid #e5e5e5;
-    border-radius: 8px;
-    padding: 10px 12px;
-    margin-bottom: 8px;
-  }
-  .row select, .row input {
-    border: none;
-    background: transparent;
-    font-size: 14px;
-    padding: 4px 6px;
-    color: #222;
-    min-width: 0;
-  }
-  .row select:focus, .row input:focus {
-    outline: none;
-    background: #f4f4f4;
-    border-radius: 4px;
-  }
+  h1 { font-size: 22px; margin: 0 0 4px; font-weight: 600; }
+  .sub { color: #888; font-size: 13px; margin-bottom: 32px; }
+  h2 { font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px; color: #888; margin: 32px 0 12px; font-weight: 600; }
+  .row { display: flex; gap: 8px; align-items: center; background: white; border: 1px solid #e5e5e5; border-radius: 8px; padding: 10px 12px; margin-bottom: 8px; }
+  .row select, .row input { border: none; background: transparent; font-size: 14px; padding: 4px 6px; color: #222; min-width: 0; }
+  .row select:focus, .row input:focus { outline: none; background: #f4f4f4; border-radius: 4px; }
   .row .drug { flex: 1.5; }
   .row .indication { flex: 1.5; }
   .row .month { flex: 1; }
   .row .count { width: 60px; text-align: center; }
-  .row .x {
-    background: none;
-    border: none;
-    color: #c00;
-    font-size: 18px;
-    cursor: pointer;
-    padding: 0 4px;
-  }
+  .row .x { background: none; border: none; color: #c00; font-size: 18px; cursor: pointer; padding: 0 4px; }
   .row .x:hover { color: #800; }
-  .add {
-    background: white;
-    border: 1px dashed #bbb;
-    color: #666;
-    padding: 10px 14px;
-    border-radius: 8px;
-    width: 100%;
-    cursor: pointer;
-    font-size: 13px;
-  }
+  .add { background: white; border: 1px dashed #bbb; color: #666; padding: 10px 14px; border-radius: 8px; width: 100%; cursor: pointer; font-size: 13px; }
   .add:hover { border-color: #888; color: #222; }
-  .result {
-    background: #222;
-    color: white;
-    border-radius: 10px;
-    padding: 24px;
-    margin-top: 40px;
-    text-align: center;
-  }
-  .result .big {
-    font-size: 48px;
-    font-weight: 700;
-    line-height: 1;
-  }
-  .result .lbl {
-    font-size: 12px;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    color: #999;
-    margin-top: 6px;
-  }
-  .split {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 12px;
-    margin-top: 20px;
-    padding-top: 20px;
-    border-top: 1px solid #444;
-  }
+  .result { background: #222; color: white; border-radius: 10px; padding: 24px; margin-top: 40px; text-align: center; }
+  .result .big { font-size: 48px; font-weight: 700; line-height: 1; }
+  .result .lbl { font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: #999; margin-top: 6px; }
+  .split { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-top: 20px; padding-top: 20px; border-top: 1px solid #444; }
   .split div { text-align: center; }
   .split .v { font-size: 18px; font-weight: 600; }
   .split .l { font-size: 10px; color: #999; text-transform: uppercase; }
-  details {
-    margin-top: 20px;
-    background: white;
-    border: 1px solid #e5e5e5;
-    border-radius: 8px;
-    padding: 12px 16px;
-  }
-  details summary {
-    cursor: pointer;
-    font-size: 13px;
-    color: #555;
-    font-weight: 500;
-  }
+  details { margin-top: 20px; background: white; border: 1px solid #e5e5e5; border-radius: 8px; padding: 12px 16px; }
+  details summary { cursor: pointer; font-size: 13px; color: #555; font-weight: 500; }
   table { width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 13px; }
   th, td { text-align: left; padding: 6px 4px; border-bottom: 1px solid #eee; }
   th { color: #888; font-weight: 500; font-size: 11px; text-transform: uppercase; }
   td.num { text-align: right; }
-  .switch-box {
-    background: #fff;
-    border: 1px solid #e5e5e5;
-    border-radius: 8px;
-    padding: 14px;
-    margin-bottom: 8px;
-  }
-  .switch-box .top {
-    display: grid;
-    grid-template-columns: 1fr 110px 110px 110px;
-    gap: 8px;
-    align-items: end;
-    margin-bottom: 12px;
-  }
-  .switch-box label {
-    display: block;
-    font-size: 11px;
-    color: #888;
-    text-transform: uppercase;
-    letter-spacing: 0.4px;
-    margin-bottom: 3px;
-    font-weight: 600;
-  }
-  .switch-box input, .switch-box select {
-    width: 100%;
-    padding: 6px 8px;
-    border: 1px solid #e5e5e5;
-    border-radius: 5px;
-    font-size: 13px;
-    background: white;
-  }
-  .alloc {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-    gap: 8px;
-    padding-top: 10px;
-    border-top: 1px dashed #ddd;
-  }
+  .switch-box { background: #fff; border: 1px solid #e5e5e5; border-radius: 8px; padding: 14px; margin-bottom: 8px; }
+  .switch-box .top { display: grid; grid-template-columns: 1fr 110px 110px 110px; gap: 8px; align-items: end; margin-bottom: 12px; }
+  .switch-box label { display: block; font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 3px; font-weight: 600; }
+  .switch-box input, .switch-box select { width: 100%; padding: 6px 8px; border: 1px solid #e5e5e5; border-radius: 5px; font-size: 13px; background: white; }
+  .alloc { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; padding-top: 10px; border-top: 1px dashed #ddd; }
   .alloc .item { text-align: center; }
   .alloc .item input { text-align: center; }
-  .alloc .item .out {
-    font-size: 13px;
-    color: #1c8a4a;
-    font-weight: 600;
-    margin-top: 4px;
-  }
-  .info {
-    font-size: 12px;
-    color: #888;
-    margin-top: 8px;
-  }
+  .alloc .item .out { font-size: 13px; color: #1c8a4a; font-weight: 600; margin-top: 4px; }
+  .info { font-size: 12px; color: #888; margin-top: 8px; }
   .info b { color: #c00; }
-  .export {
-    margin-top: 16px;
-    background: #0a6bbd;
-    color: white;
-    border: none;
-    padding: 12px 18px;
-    border-radius: 8px;
-    font-size: 14px;
-    font-weight: 600;
-    width: 100%;
-    cursor: pointer;
-  }
+  .export { margin-top: 16px; background: #0a6bbd; color: white; border: none; padding: 12px 18px; border-radius: 8px; font-size: 14px; font-weight: 600; width: 100%; cursor: pointer; }
   .export:hover { background: #084e8a; }
 </style>
 </head>
@@ -253,12 +114,15 @@ const DRUGS = {
     cd:        { label: "Crohn's (GI)",      induction: [0,4,8], maint: 8,  packs: 2 }
   }},
   remicade: { name: "Remicade", indications: {
-    ra:        { label: "RA (Rheum)",        induction: [0,2,6], maint: 8,  packs: 3 },
-    as:        { label: "AS (Rheum)",        induction: [0,2,6], maint: 6,  packs: 4 },
-    psa:       { label: "PsA (Rheum)",       induction: [0,2,6], maint: 8,  packs: 3 },
-    psoriasis: { label: "Psoriasis (Derm)",  induction: [0,2,6], maint: 8,  packs: 3 },
-    cd:        { label: "Crohn's (GI)",      induction: [0,2,6], maint: 8,  packs: 3 },
-    uc:        { label: "UC (GI)",           induction: [0,2,6], maint: 8,  packs: 3 }
+    ra:        { label: "RA (Rheum) — 3 mg/kg q8w",         induction: [0,2,6], maint: 8, packs: 3 },
+    ra_esc:    { label: "RA — escalated 10 mg/kg q8w",      induction: [0,2,6], maint: 8, packs: 7 },
+    as:        { label: "AS (Rheum) — 5 mg/kg q6w",         induction: [0,2,6], maint: 6, packs: 4 },
+    as_esc:    { label: "AS — escalated 10 mg/kg q8w",      induction: [0,2,6], maint: 8, packs: 7 },
+    psa:       { label: "PsA (Rheum)",                       induction: [0,2,6], maint: 8, packs: 3 },
+    psoriasis: { label: "Psoriasis (Derm)",                  induction: [0,2,6], maint: 8, packs: 3 },
+    cd:        { label: "Crohn's (GI) — 5 mg/kg q8w",        induction: [0,2,6], maint: 8, packs: 4 },
+    cd_esc:    { label: "Crohn's — escalated 10 mg/kg q8w",  induction: [0,2,6], maint: 8, packs: 7 },
+    uc:        { label: "UC (GI)",                            induction: [0,2,6], maint: 8, packs: 3 }
   }},
   simponi: { name: "Simponi", indications: {
     ra:        { label: "RA (Rheum)",        induction: [],      maint: 4,  packs: 1 },
@@ -462,33 +326,16 @@ document.body.addEventListener("click", e => {
 
 addItem("new");
 
-/* ============================================================
-   PDF EXPORT
-   ============================================================ */
 function buildReportData() {
   const agg = {};
   Object.keys(DRUGS).forEach(d => agg[d] = { newPts: 0, carryPts: 0, redPts: 0, switchPts: 0, newPk: 0, carryPk: 0, redPk: 0, switchPk: 0 });
   const flow = MONTHS.map(() => ({ new: 0, switch: 0 }));
 
-  lists.new.forEach(p => {
-    agg[p.drug].newPts += p.count;
-    agg[p.drug].newPk  += calcNew(p);
-    flow[p.month - 1].new += p.count;
-  });
-  lists.carry.forEach(c => {
-    agg[c.drug].carryPts += c.count;
-    agg[c.drug].carryPk  += calcCarry(c);
-  });
-  lists.red.forEach(r => {
-    agg[r.drug].redPts += r.count;
-    agg[r.drug].redPk  += calcRed(r);
-  });
+  lists.new.forEach(p => { agg[p.drug].newPts += p.count; agg[p.drug].newPk += calcNew(p); flow[p.month - 1].new += p.count; });
+  lists.carry.forEach(c => { agg[c.drug].carryPts += c.count; agg[c.drug].carryPk += calcCarry(c); });
+  lists.red.forEach(r => { agg[r.drug].redPts += r.count; agg[r.drug].redPk += calcRed(r); });
   lists.hum.forEach(h => {
-    calcHumira(h).switches.forEach(s => {
-      agg[s.drug].switchPts += s.patients;
-      agg[s.drug].switchPk  += s.packs;
-      flow[h.month - 1].switch += s.patients;
-    });
+    calcHumira(h).switches.forEach(s => { agg[s.drug].switchPts += s.patients; agg[s.drug].switchPk += s.packs; flow[h.month - 1].switch += s.patients; });
   });
 
   return { agg, flow };
