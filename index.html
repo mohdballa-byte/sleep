@@ -3,224 +3,141 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="theme-color" content="#0a6bbd" media="(prefers-color-scheme: light)" />
+<meta name="theme-color" content="#0d1117" media="(prefers-color-scheme: dark)" />
 <title>Biologic Pack Calculator</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<link rel="manifest" href="manifest.webmanifest" />
+<link rel="icon" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='12' fill='%230a6bbd'/><text x='32' y='44' font-family='system-ui' font-size='36' font-weight='700' fill='white' text-anchor='middle'>Rx</text></svg>" />
+<link rel="apple-touch-icon" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'><rect width='180' height='180' fill='%230a6bbd'/><text x='90' y='125' font-family='system-ui' font-size='100' font-weight='700' fill='white' text-anchor='middle'>Rx</text></svg>" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js" crossorigin="anonymous"></script>
 <style>
+  :root {
+    --bg: #fafafa; --card: #ffffff; --text: #222; --muted: #888; --border: #e5e5e5;
+    --accent: #0a6bbd; --accent-dark: #084e8a; --danger: #c00; --success: #1c8a4a;
+    --dark-panel: #222; --preview-bg: #f8fafd;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0d1117; --card: #161b22; --text: #e6edf3; --muted: #8b949e; --border: #30363d;
+      --accent: #58a6ff; --accent-dark: #388bfd; --danger: #f85149; --success: #3fb950;
+      --dark-panel: #010409; --preview-bg: #1a1f26;
+    }
+  }
   * { box-sizing: border-box; }
   body {
-    margin: 0;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    background: #fafafa;
-    color: #222;
-    font-size: 15px;
-    line-height: 1.5;
+    margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    background: var(--bg); color: var(--text); font-size: 15px; line-height: 1.5;
   }
-  .wrap {
-    max-width: 720px;
-    margin: 0 auto;
-    padding: 32px 20px 60px;
-  }
-  h1 {
-    font-size: 22px;
-    margin: 0 0 4px;
-    font-weight: 600;
-  }
-  .sub {
-    color: #888;
-    font-size: 13px;
-    margin-bottom: 32px;
-  }
-  h2 {
-    font-size: 14px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    color: #888;
-    margin: 32px 0 12px;
-    font-weight: 600;
-  }
+  .wrap { max-width: 720px; margin: 0 auto; padding: 32px 20px 60px; }
+  h1 { font-size: 22px; margin: 0 0 4px; font-weight: 600; }
+  .sub { color: var(--muted); font-size: 13px; margin-bottom: 16px; }
+  .privacy { font-size: 11px; color: var(--muted); background: var(--card); border: 1px solid var(--border); border-radius: 6px; padding: 6px 10px; margin-bottom: 24px; }
+  h2 { font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted); margin: 32px 0 12px; font-weight: 600; }
+  h2 .hint { font-weight: 400; text-transform: none; letter-spacing: 0; font-size: 12px; }
   .row {
-    display: flex;
-    gap: 8px;
-    align-items: center;
-    background: white;
-    border: 1px solid #e5e5e5;
-    border-radius: 8px;
-    padding: 10px 12px;
-    margin-bottom: 8px;
+    display: grid; gap: 6px; align-items: end;
+    background: var(--card); border: 1px solid var(--border); border-radius: 8px;
+    padding: 10px 12px; margin-bottom: 6px;
   }
+  .row .fields { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+  .row .fields > div { display: flex; flex-direction: column; flex: 1 1 auto; min-width: 0; }
+  .row .fields > div.f-drug { flex: 2 1 130px; }
+  .row .fields > div.f-ind  { flex: 3 1 180px; }
+  .row .fields > div.f-mo   { flex: 1 1 70px; }
+  .row .fields > div.f-wt   { flex: 1 1 70px; }
+  .row .fields > div.f-ct   { flex: 0 0 60px; }
+  .row .fields > div.f-mult { flex: 1 1 80px; }
+  .row .fields label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.3px; margin-bottom: 2px; font-weight: 600; }
   .row select, .row input {
-    border: none;
-    background: transparent;
-    font-size: 14px;
-    padding: 4px 6px;
-    color: #222;
-    min-width: 0;
+    border: 1px solid transparent; background: transparent; font-size: 13px; padding: 5px 6px;
+    color: var(--text); min-width: 0; border-radius: 4px; width: 100%;
   }
-  .row select:focus, .row input:focus {
-    outline: none;
-    background: #f4f4f4;
-    border-radius: 4px;
+  .row select:focus, .row input:focus { outline: none; background: var(--preview-bg); border-color: var(--accent); }
+  .row .actions { display: flex; align-items: end; gap: 4px; flex: 0 0 auto; }
+  .row .x, .row .dup {
+    background: transparent; border: 1px solid var(--border); color: var(--muted);
+    font-size: 15px; cursor: pointer; padding: 4px 8px; border-radius: 4px;
+    line-height: 1; height: 28px;
   }
-  .row .drug { flex: 1.5; }
-  .row .indication { flex: 1.5; }
-  .row .month { flex: 1; }
-  .row .count { width: 60px; text-align: center; }
-  .row .x {
-    background: none;
-    border: none;
-    color: #c00;
-    font-size: 18px;
-    cursor: pointer;
-    padding: 0 4px;
+  .row .x:hover { color: var(--danger); border-color: var(--danger); }
+  .row .dup:hover { color: var(--accent); border-color: var(--accent); }
+  .row .preview {
+    font-size: 11px; color: var(--muted); background: var(--preview-bg);
+    border-radius: 4px; padding: 4px 8px; margin-top: 4px;
   }
-  .row .x:hover { color: #800; }
+  .row .preview b { color: var(--text); font-weight: 600; }
   .add {
-    background: white;
-    border: 1px dashed #bbb;
-    color: #666;
-    padding: 10px 14px;
-    border-radius: 8px;
-    width: 100%;
-    cursor: pointer;
-    font-size: 13px;
+    background: var(--card); border: 1px dashed var(--border); color: var(--muted);
+    padding: 10px 14px; border-radius: 8px; width: 100%; cursor: pointer; font-size: 13px;
   }
-  .add:hover { border-color: #888; color: #222; }
+  .add:hover { border-color: var(--muted); color: var(--text); }
   .result {
-    background: #222;
-    color: white;
-    border-radius: 10px;
-    padding: 24px;
-    margin-top: 40px;
-    text-align: center;
+    background: var(--dark-panel); color: white; border-radius: 10px; padding: 24px;
+    margin-top: 40px; text-align: center;
   }
-  .result .big {
-    font-size: 48px;
-    font-weight: 700;
-    line-height: 1;
-  }
-  .result .lbl {
-    font-size: 12px;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    color: #999;
-    margin-top: 6px;
-  }
-  .split {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 12px;
-    margin-top: 20px;
-    padding-top: 20px;
-    border-top: 1px solid #444;
-  }
+  .result .big { font-size: 48px; font-weight: 700; line-height: 1; }
+  .result .lbl { font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: #999; margin-top: 6px; }
+  .split { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-top: 20px; padding-top: 20px; border-top: 1px solid #444; }
   .split div { text-align: center; }
   .split .v { font-size: 18px; font-weight: 600; }
   .split .l { font-size: 10px; color: #999; text-transform: uppercase; }
-  details {
-    margin-top: 20px;
-    background: white;
-    border: 1px solid #e5e5e5;
-    border-radius: 8px;
-    padding: 12px 16px;
-  }
-  details summary {
-    cursor: pointer;
-    font-size: 13px;
-    color: #555;
-    font-weight: 500;
-  }
+  details { margin-top: 20px; background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 12px 16px; }
+  details summary { cursor: pointer; font-size: 13px; color: var(--text); font-weight: 500; }
   table { width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 13px; }
-  th, td { text-align: left; padding: 6px 4px; border-bottom: 1px solid #eee; }
-  th { color: #888; font-weight: 500; font-size: 11px; text-transform: uppercase; }
+  th, td { text-align: left; padding: 6px 4px; border-bottom: 1px solid var(--border); color: var(--text); }
+  th { color: var(--muted); font-weight: 500; font-size: 11px; text-transform: uppercase; }
   td.num { text-align: right; }
-  .switch-box {
-    background: #fff;
-    border: 1px solid #e5e5e5;
-    border-radius: 8px;
-    padding: 14px;
-    margin-bottom: 8px;
-  }
-  .switch-box .top {
-    display: grid;
-    grid-template-columns: 1fr 110px 110px 110px;
-    gap: 8px;
-    align-items: end;
-    margin-bottom: 12px;
-  }
-  .switch-box label {
-    display: block;
-    font-size: 11px;
-    color: #888;
-    text-transform: uppercase;
-    letter-spacing: 0.4px;
-    margin-bottom: 3px;
-    font-weight: 600;
-  }
-  .switch-box input, .switch-box select {
-    width: 100%;
-    padding: 6px 8px;
-    border: 1px solid #e5e5e5;
-    border-radius: 5px;
-    font-size: 13px;
-    background: white;
-  }
-  .alloc {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-    gap: 8px;
-    padding-top: 10px;
-    border-top: 1px dashed #ddd;
-  }
-  .alloc .item { text-align: center; }
+  .switch-box { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 14px; margin-bottom: 8px; }
+  .switch-box .top { display: grid; grid-template-columns: 1.4fr 1fr 90px 90px 90px; gap: 8px; align-items: end; margin-bottom: 12px; }
+  .switch-box label { display: block; font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 3px; font-weight: 600; }
+  .switch-box input, .switch-box select { width: 100%; padding: 6px 8px; border: 1px solid var(--border); border-radius: 5px; font-size: 13px; background: var(--card); color: var(--text); }
+  .alloc { display: grid; gap: 8px; padding-top: 10px; border-top: 1px dashed var(--border); }
+  .alloc .item { display: grid; grid-template-columns: 90px 80px 1fr; gap: 8px; align-items: center; }
   .alloc .item input { text-align: center; }
-  .alloc .item .out {
-    font-size: 13px;
-    color: #1c8a4a;
-    font-weight: 600;
-    margin-top: 4px;
-  }
-  .info {
-    font-size: 12px;
-    color: #888;
-    margin-top: 8px;
-  }
-  .info b { color: #c00; }
-  .export {
-    margin-top: 16px;
-    background: #0a6bbd;
-    color: white;
-    border: none;
-    padding: 12px 18px;
-    border-radius: 8px;
-    font-size: 14px;
-    font-weight: 600;
-    width: 100%;
+  .alloc .item .name { font-size: 12px; font-weight: 600; }
+  .alloc .item .out { font-size: 12px; color: var(--success); font-weight: 600; }
+  .info { font-size: 12px; color: var(--muted); margin-top: 8px; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+  .info b { color: var(--danger); }
+  .toolbar { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 16px; }
+  .btn {
+    flex: 1 1 140px; background: var(--accent); color: white; border: none;
+    padding: 12px 14px; border-radius: 8px; font-size: 13px; font-weight: 600;
     cursor: pointer;
   }
-  .export:hover { background: #084e8a; }
+  .btn:hover { background: var(--accent-dark); }
+  .btn.ghost { background: transparent; color: var(--accent); border: 1px solid var(--accent); }
+  .btn.danger { background: transparent; color: var(--danger); border: 1px solid var(--danger); }
+  .btn.danger:hover { background: var(--danger); color: white; }
+  @media (max-width: 560px) {
+    .switch-box .top { grid-template-columns: 1fr 1fr; }
+    .split { grid-template-columns: repeat(2, 1fr); }
+    .row .fields > div.f-drug,
+    .row .fields > div.f-ind { flex: 1 1 100%; }
+  }
 </style>
 </head>
 <body>
 <div class="wrap">
   <h1>Biologic Pack Calculator</h1>
   <div class="sub">Forecast annual biologic pack requirements with switch modelling.</div>
+  <div class="privacy">All data stays in your browser (localStorage). Nothing is sent to any server.</div>
 
-  <h2>New Patients</h2>
+  <h2>New Patients <span class="hint">induction + maintenance from start month</span></h2>
   <div id="new"></div>
   <button class="add" data-add="new">+ Add patient</button>
 
-  <h2>Carryover Patients</h2>
+  <h2>Carryover Patients <span class="hint">continuing prior therapy through this year</span></h2>
   <div id="carry"></div>
   <button class="add" data-add="carry">+ Add carryover</button>
 
-  <h2>Dose Reduction</h2>
+  <h2>Dose Reduction <span class="hint">extended interval — packs adjusted downward</span></h2>
   <div id="red"></div>
   <button class="add" data-add="red">+ Add reduced-dose group</button>
 
-  <h2>Humira (Adalimumab) Dropout → Switch</h2>
+  <h2>Source Biologic Dropout → Switch <span class="hint">e.g. Humira Y1 attrition</span></h2>
   <div id="hum"></div>
-  <button class="add" data-add="hum">+ Add Humira cohort</button>
+  <button class="add" data-add="hum">+ Add source cohort</button>
 
   <div class="result">
     <div class="big" id="total">0</div>
@@ -229,11 +146,17 @@
       <div><div class="v" id="tNew">0</div><div class="l">New</div></div>
       <div><div class="v" id="tCarry">0</div><div class="l">Carryover</div></div>
       <div><div class="v" id="tRed">0</div><div class="l">Reduced</div></div>
-      <div><div class="v" id="tSwitch">0</div><div class="l">Switch (Humira)</div></div>
+      <div><div class="v" id="tSwitch">0</div><div class="l">Switch</div></div>
     </div>
   </div>
 
-  <button class="export" id="exportPdf">⬇ Download PDF Report</button>
+  <div class="toolbar">
+    <button class="btn" id="exportPdf">⬇ PDF report</button>
+    <button class="btn ghost" id="exportJson">Save scenario</button>
+    <button class="btn ghost" id="importJson">Load scenario</button>
+    <button class="btn danger" id="resetAll">Reset all</button>
+    <input type="file" id="fileInput" accept="application/json" style="display:none" />
+  </div>
 
   <details>
     <summary>Breakdown by drug</summary>
@@ -245,31 +168,42 @@
 </div>
 
 <script>
+/* ============================================================
+   DRUG DATABASE
+   Fields per indication:
+     label           display name
+     induction       list of induction weeks (e.g. [0,4]); empty = no induction
+     maint           maintenance interval (weeks)
+     packs           packs per maintenance dose (fixed vials, e.g. SC pens)
+     mgKg            optional — if set, packs = ceil(mgKg × weight / 100)
+     indPacks        optional — per-induction override for step-down inductions
+     skipInduction   optional — used for dose-escalation switches (no re-induction)
+   ============================================================ */
 const DRUGS = {
-  tremfya: { name: "Tremfya", indications: {
+  tremfya: { name: "Tremfya", weightBased: false, indications: {
     psoriasis: { label: "Psoriasis (Derm)",  induction: [0,4],   maint: 8,  packs: 1 },
     psa:       { label: "PsA (Rheum)",       induction: [0,4],   maint: 8,  packs: 1 },
     uc:        { label: "UC (GI)",           induction: [0,4,8], maint: 8,  packs: 2 },
     cd:        { label: "Crohn's (GI)",      induction: [0,4,8], maint: 8,  packs: 2 }
   }},
-  remicade: { name: "Remicade", indications: {
-    ra:        { label: "RA (Rheum) — 3 mg/kg q8w",         induction: [0,2,6], maint: 8, packs: 3 },
-    ra_esc:    { label: "RA — escalated 10 mg/kg q8w",      induction: [0,2,6], maint: 8, packs: 7 },
-    as:        { label: "AS (Rheum) — 5 mg/kg q6w",         induction: [0,2,6], maint: 6, packs: 4 },
-    as_esc:    { label: "AS — escalated 10 mg/kg q8w",      induction: [0,2,6], maint: 8, packs: 7 },
-    psa:       { label: "PsA (Rheum)",                       induction: [0,2,6], maint: 8, packs: 3 },
-    psoriasis: { label: "Psoriasis (Derm)",                  induction: [0,2,6], maint: 8, packs: 3 },
-    cd:        { label: "Crohn's (GI) — 5 mg/kg q8w",        induction: [0,2,6], maint: 8, packs: 4 },
-    cd_esc:    { label: "Crohn's — escalated 10 mg/kg q8w",  induction: [0,2,6], maint: 8, packs: 7 },
-    uc:        { label: "UC (GI)",                            induction: [0,2,6], maint: 8, packs: 3 }
+  remicade: { name: "Remicade", weightBased: true, indications: {
+    ra:        { label: "RA (Rheum) — 3 mg/kg q8w",           induction: [0,2,6], maint: 8, packs: 3, mgKg: 3 },
+    ra_esc:    { label: "RA — escalated 10 mg/kg q8w",        induction: [0,2,6], maint: 8, packs: 7, mgKg: 10, skipInduction: true },
+    as:        { label: "AS (Rheum) — 5 mg/kg q6w",           induction: [0,2,6], maint: 6, packs: 4, mgKg: 5 },
+    as_esc:    { label: "AS — escalated 10 mg/kg q8w",        induction: [0,2,6], maint: 8, packs: 7, mgKg: 10, skipInduction: true },
+    psa:       { label: "PsA (Rheum) — 5 mg/kg q8w",          induction: [0,2,6], maint: 8, packs: 4, mgKg: 5 },
+    psoriasis: { label: "Psoriasis (Derm) — 5 mg/kg q8w",     induction: [0,2,6], maint: 8, packs: 4, mgKg: 5 },
+    cd:        { label: "Crohn's (GI) — 5 mg/kg q8w",         induction: [0,2,6], maint: 8, packs: 4, mgKg: 5 },
+    cd_esc:    { label: "Crohn's — escalated 10 mg/kg q8w",   induction: [0,2,6], maint: 8, packs: 7, mgKg: 10, skipInduction: true },
+    uc:        { label: "UC (GI) — 5 mg/kg q8w",              induction: [0,2,6], maint: 8, packs: 4, mgKg: 5 }
   }},
-  simponi: { name: "Simponi", indications: {
+  simponi: { name: "Simponi", weightBased: false, indications: {
     ra:        { label: "RA (Rheum)",        induction: [],      maint: 4,  packs: 1 },
     psa:       { label: "PsA (Rheum)",       induction: [],      maint: 4,  packs: 1 },
     as:        { label: "AS (Rheum)",        induction: [],      maint: 4,  packs: 1 },
     uc:        { label: "UC (GI)",           induction: [0,2],   maint: 4,  packs: 2, indPacks: [4,2] }
   }},
-  stelara: { name: "Stelara", indications: {
+  stelara: { name: "Stelara", weightBased: false, indications: {
     psoriasis: { label: "Psoriasis (Derm)",  induction: [0,4],   maint: 12, packs: 1 },
     psa:       { label: "PsA (Rheum)",       induction: [0,4],   maint: 12, packs: 1 },
     cd:        { label: "Crohn's (GI)",      induction: [0,8],   maint: 8,  packs: 1 },
@@ -277,169 +211,229 @@ const DRUGS = {
   }}
 };
 
-// Humira reference: 40 mg SC every 2 weeks maintenance for most indications,
-// with an 80 mg loading dose for several uses. Used here only to size the
-// switching cohort — the source biologic itself is not added to pack totals.
-const HUMIRA = { name: "Humira (adalimumab)", maint: 2, packs: 1 };
-
-const SWITCH_TARGETS = ["tremfya", "stelara", "simponi"];
-
+const SWITCH_TARGETS = Object.keys(DRUGS);
 const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 const MULTIPLIERS = [["1.25","×1.25"],["1.5","×1.5"],["2","×2"],["3","×3"]];
+const STORAGE_KEY = "bpc.state.v2";
 
 let lists = { new: [], carry: [], red: [], hum: [] };
 let nextId = 1;
 
-function drugOpts() {
-  return Object.entries(DRUGS).map(([k,v]) => `<option value="${k}">${v.name}</option>`).join("");
-}
-function indOpts(d) {
-  return Object.entries(DRUGS[d].indications).map(([k,v]) => `<option value="${k}">${v.label}</option>`).join("");
-}
-function monthOpts() {
-  return MONTHS.map((m,i) => `<option value="${i+1}">${m}</option>`).join("");
+/* ============================================================
+   CALCULATIONS
+   ============================================================ */
+function vialsFor(ind, weight) {
+  if (ind.mgKg && weight) return Math.max(1, Math.ceil(ind.mgKg * weight / 100));
+  return ind.packs;
 }
 
-// Pack count for one patient on drug/indication starting at startWeek through wk 52
-function packsForPatient(drugKey, indicationKey, startMonth) {
+// packs for one patient starting at month 1..12 through wk 52
+function packsForPatient(drugKey, indicationKey, startMonth, weight) {
   const ind = DRUGS[drugKey].indications[indicationKey];
-  if (!ind) return 0;
+  if (!ind) return { packs: 0, indDoses: 0, maintDoses: 0, packsPerDose: 0 };
+  const perDose = vialsFor(ind, weight);
   const sw = (startMonth - 1) * 4.345;
-  let packs = 0;
-  ind.induction.forEach((wk, i) => {
-    if (sw + wk < 52) packs += ind.indPacks ? ind.indPacks[i] : ind.packs;
-  });
-  const lastInd = ind.induction.length ? ind.induction[ind.induction.length-1] : 0;
-  let nextWk = ind.induction.length ? lastInd + ind.maint : 0;
-  while (sw + nextWk < 52) { packs += ind.packs; nextWk += ind.maint; }
-  return packs;
+  let packs = 0, indDoses = 0, maintDoses = 0;
+
+  if (!ind.skipInduction) {
+    ind.induction.forEach((wk, i) => {
+      if (sw + wk < 52) {
+        packs += ind.indPacks ? ind.indPacks[i] : perDose;
+        indDoses++;
+      }
+    });
+  }
+  const lastInd = ind.induction.length && !ind.skipInduction ? ind.induction[ind.induction.length-1] : 0;
+  let nextWk = (ind.induction.length && !ind.skipInduction) ? lastInd + ind.maint : 0;
+  while (sw + nextWk < 52) {
+    packs += perDose;
+    maintDoses++;
+    nextWk += ind.maint;
+  }
+  return { packs, indDoses, maintDoses, packsPerDose: perDose };
 }
 
-function calcNew(p)   { return packsForPatient(p.drug, p.indication, p.month) * p.count; }
+function calcNew(p)   { return packsForPatient(p.drug, p.indication, p.month, p.weight).packs * p.count; }
+
 function calcCarry(c) {
   const ind = DRUGS[c.drug].indications[c.indication];
-  return ind ? Math.floor(52 / ind.maint) * ind.packs * c.count : 0;
-}
-function calcRed(r) {
-  const ind = DRUGS[r.drug].indications[r.indication];
-  return ind ? Math.floor(52 / (ind.maint * r.mult)) * ind.packs * r.count : 0;
+  if (!ind) return 0;
+  const perDose = vialsFor(ind, c.weight);
+  const startWk = ((c.month || 1) - 1) * 4.345;
+  const doses = Math.floor((52 - startWk) / ind.maint);
+  return doses * perDose * c.count;
 }
 
-// Returns array of switch contributions: [{drug, indication, patients, packs}]
+function calcRed(r) {
+  const ind = DRUGS[r.drug].indications[r.indication];
+  if (!ind) return 0;
+  const perDose = vialsFor(ind, r.weight);
+  const startWk = ((r.month || 1) - 1) * 4.345;
+  const doses = Math.floor((52 - startWk) / (ind.maint * r.mult));
+  return doses * perDose * r.count;
+}
+
+// Largest-remainder allocation of `total` across `pcts` (must sum > 0)
+function allocateLR(total, pcts) {
+  const sum = pcts.reduce((s,p) => s+p, 0);
+  if (sum === 0 || total === 0) return pcts.map(() => 0);
+  const raw = pcts.map(p => total * p / sum);
+  const floors = raw.map(Math.floor);
+  let remaining = total - floors.reduce((s,f) => s+f, 0);
+  const remainders = raw.map((r,i) => ({ i, frac: r - Math.floor(r) })).sort((a,b) => b.frac - a.frac);
+  for (let k = 0; k < remaining; k++) floors[remainders[k].i]++;
+  return floors;
+}
+
 function calcHumira(h) {
   const dropouts = Math.round(h.total * (h.dropout / 100));
-  const sumPct = h.allocTremfya + h.allocStelara + h.allocSimponi;
-  if (sumPct === 0) return { dropouts, switches: [] };
-  const switches = SWITCH_TARGETS.map(target => {
-    const pct = target === "tremfya" ? h.allocTremfya
-              : target === "stelara" ? h.allocStelara
-              : h.allocSimponi;
-    const patients = Math.round(dropouts * (pct / sumPct));
-    const packs = packsForPatient(target, h.indication, h.month) * patients;
-    return { drug: target, patients, packs };
+  const pcts = SWITCH_TARGETS.map(t => h.alloc[t] || 0);
+  const patients = allocateLR(dropouts, pcts);
+  const switches = SWITCH_TARGETS.map((target, i) => {
+    const firstInd = Object.keys(DRUGS[target].indications)[0];
+    const indKey = (h.targetInds && h.targetInds[target]) || firstInd;
+    const pk = packsForPatient(target, indKey, h.month, h.weight).packs * patients[i];
+    return { drug: target, indication: indKey, patients: patients[i], packs: pk };
   });
   return { dropouts, switches };
 }
 
+/* ============================================================
+   RENDERING
+   ============================================================ */
+function drugOpts()          { return Object.entries(DRUGS).map(([k,v]) => `<option value="${k}">${v.name}</option>`).join(""); }
+function indOpts(d)          { return Object.entries(DRUGS[d].indications).map(([k,v]) => `<option value="${k}">${v.label}</option>`).join(""); }
+function monthOpts()         { return MONTHS.map((m,i) => `<option value="${i+1}">${m}</option>`).join(""); }
+function multOpts()          { return MULTIPLIERS.map(m => `<option value="${m[0]}">${m[1]}</option>`).join(""); }
+
+function schedulePreview(ind, weight) {
+  if (!ind) return "";
+  const perDose = vialsFor(ind, weight);
+  const parts = [];
+  if (ind.induction.length && !ind.skipInduction) {
+    parts.push(`Wk ${ind.induction.join(", ")}`);
+  }
+  parts.push(`q${ind.maint}w`);
+  const dosing = ind.mgKg ? `${ind.mgKg} mg/kg → <b>${perDose}</b> pack${perDose>1?"s":""}/dose` : `<b>${perDose}</b> pack${perDose>1?"s":""}/dose`;
+  return `<span class="preview">${parts.join(" → ")} · ${dosing}</span>`;
+}
+
 function rowHtml(type, item) {
-  const extras = type === "new"
-    ? `<select class="month" data-f="month">${monthOpts()}</select>`
-    : type === "red"
-      ? `<select class="month" data-f="mult">${MULTIPLIERS.map(m=>`<option value="${m[0]}">${m[1]}</option>`).join("")}</select>`
-      : "";
-  return `<div class="row" data-id="${item.id}">
-    <select class="drug" data-f="drug">${drugOpts()}</select>
-    <select class="indication" data-f="indication">${indOpts(item.drug)}</select>
-    ${extras}
-    <input class="count" type="number" min="1" data-f="count" value="${item.count}" />
-    <button class="x" data-rm>×</button>
+  const drug = DRUGS[item.drug];
+  const ind = drug.indications[item.indication];
+  const showWeight = drug.weightBased;
+  const showMonth = type === "new" || type === "carry" || type === "red";
+  const showMult = type === "red";
+
+  const monthField = showMonth ? `<div class="f-mo"><label>Start</label><select data-f="month">${monthOpts()}</select></div>` : "";
+  const weightField = showWeight ? `<div class="f-wt"><label>kg</label><input type="number" inputmode="numeric" min="20" max="200" data-f="weight" value="${item.weight || 70}" /></div>` : "";
+  const multField = showMult ? `<div class="f-mult"><label>Interval</label><select data-f="mult">${multOpts()}</select></div>` : "";
+
+  return `<div class="row" data-type="${type}" data-id="${item.id}">
+    <div class="fields">
+      <div class="f-drug"><label>Drug</label><select data-f="drug">${drugOpts()}</select></div>
+      <div class="f-ind"><label>Indication</label><select data-f="indication">${indOpts(item.drug)}</select></div>
+      ${monthField}${weightField}${multField}
+      <div class="f-ct"><label>Pts</label><input type="number" inputmode="numeric" min="1" data-f="count" value="${item.count}" /></div>
+      <div class="actions">
+        <button class="dup" data-dup title="Duplicate">⧉</button>
+        <button class="x" data-rm title="Remove">×</button>
+      </div>
+    </div>
+    ${schedulePreview(ind, item.weight)}
   </div>`;
 }
 
-// Humira cohort uses a richer card layout
 function humiraHtml(h) {
-  const indSelectOpts = `
-    <option value="ra">RA (Rheum)</option>
-    <option value="psa">PsA (Rheum)</option>
-    <option value="as">AS (Rheum)</option>
-    <option value="psoriasis">Psoriasis (Derm)</option>
-    <option value="cd">Crohn's (GI)</option>
-    <option value="uc">UC (GI)</option>
-  `;
-  const calc = calcHumira(h);
-  const byTarget = Object.fromEntries(calc.switches.map(s => [s.drug, s]));
-  return `<div class="switch-box" data-id="${h.id}">
+  const dropouts = calcHumira(h);
+  const byTarget = Object.fromEntries(dropouts.switches.map(s => [s.drug, s]));
+  const allocRows = SWITCH_TARGETS.map(t => {
+    const pct = h.alloc[t] || 0;
+    const firstInd = Object.keys(DRUGS[t].indications)[0];
+    const sel = (h.targetInds && h.targetInds[t]) || firstInd;
+    const b = byTarget[t];
+    return `<div class="item">
+      <div class="name">→ ${DRUGS[t].name}</div>
+      <input type="number" inputmode="numeric" min="0" max="100" data-alloc="${t}" value="${pct}" />
+      <div>
+        <select data-tind="${t}">${Object.entries(DRUGS[t].indications).map(([k,v]) => `<option value="${k}">${v.label}</option>`).join("")}</select>
+        <div class="out">${b ? b.patients : 0} pts · ${b ? b.packs : 0} packs</div>
+      </div>
+    </div>`;
+  }).join("");
+
+  return `<div class="switch-box" data-type="hum" data-id="${h.id}">
     <div class="top">
-      <div>
-        <label>Humira Indication</label>
-        <select data-f="indication">${indSelectOpts}</select>
-      </div>
-      <div>
-        <label>Patients (Y1)</label>
-        <input type="number" min="0" data-f="total" value="${h.total}" />
-      </div>
-      <div>
-        <label>Dropout %</label>
-        <input type="number" min="0" max="100" data-f="dropout" value="${h.dropout}" />
-      </div>
-      <div>
-        <label>Switch Month</label>
-        <select data-f="month">${monthOpts()}</select>
-      </div>
+      <div><label>Source</label><input type="text" data-f="sourceName" value="${h.sourceName || 'Humira'}" /></div>
+      <div><label>Indication</label><select data-f="indication">
+        <option value="ra">RA (Rheum)</option><option value="psa">PsA (Rheum)</option>
+        <option value="as">AS (Rheum)</option><option value="psoriasis">Psoriasis (Derm)</option>
+        <option value="cd">Crohn's (GI)</option><option value="uc">UC (GI)</option>
+      </select></div>
+      <div><label>Patients</label><input type="number" inputmode="numeric" min="0" data-f="total" value="${h.total}" /></div>
+      <div><label>Dropout %</label><input type="number" inputmode="numeric" min="0" max="100" data-f="dropout" value="${h.dropout}" /></div>
+      <div><label>Switch mo.</label><select data-f="month">${monthOpts()}</select></div>
     </div>
-    <div class="alloc">
-      <div class="item">
-        <label>→ Tremfya %</label>
-        <input type="number" min="0" max="100" data-f="allocTremfya" value="${h.allocTremfya}" />
-        <div class="out">${byTarget.tremfya ? byTarget.tremfya.patients : 0} pts / ${byTarget.tremfya ? byTarget.tremfya.packs : 0} packs</div>
-      </div>
-      <div class="item">
-        <label>→ Stelara %</label>
-        <input type="number" min="0" max="100" data-f="allocStelara" value="${h.allocStelara}" />
-        <div class="out">${byTarget.stelara ? byTarget.stelara.patients : 0} pts / ${byTarget.stelara ? byTarget.stelara.packs : 0} packs</div>
-      </div>
-      <div class="item">
-        <label>→ Simponi %</label>
-        <input type="number" min="0" max="100" data-f="allocSimponi" value="${h.allocSimponi}" />
-        <div class="out">${byTarget.simponi ? byTarget.simponi.patients : 0} pts / ${byTarget.simponi ? byTarget.simponi.packs : 0} packs</div>
-      </div>
-    </div>
+    <div class="alloc">${allocRows}</div>
     <div class="info">
-      <b>${calc.dropouts}</b> dropouts of ${h.total} Humira patients (${h.dropout}%) re-distributed across selected biologics.
-      <button class="x" data-rm style="float:right">×</button>
+      <span><b>${dropouts.dropouts}</b> dropouts of ${h.total} ${h.sourceName || 'source'} patients (${h.dropout}%) → allocated across biologics.</span>
+      <button class="x" data-rm title="Remove">×</button>
     </div>
   </div>`;
+}
+
+function preserveFocus(fn) {
+  const active = document.activeElement;
+  const fieldKey = active?.dataset.f || active?.dataset.alloc || active?.dataset.tind;
+  const focusType = active?.dataset.f ? 'f' : active?.dataset.alloc ? 'alloc' : active?.dataset.tind ? 'tind' : null;
+  const rowId = active?.closest?.('[data-id]')?.dataset.id;
+  const selStart = active?.selectionStart;
+  const selEnd = active?.selectionEnd;
+  fn();
+  if (fieldKey && rowId && focusType) {
+    const row = document.querySelector(`[data-id="${rowId}"]`);
+    const el = row?.querySelector(`[data-${focusType}="${fieldKey}"]`);
+    if (el) {
+      el.focus();
+      if (selStart != null && el.setSelectionRange) {
+        try { el.setSelectionRange(selStart, selEnd); } catch(_) {}
+      }
+    }
+  }
 }
 
 function render() {
-  // standard sections
-  ["new","carry","red"].forEach(type => {
-    const el = document.getElementById(type);
-    el.innerHTML = lists[type].map(i => rowHtml(type, i)).join("");
-    lists[type].forEach(item => {
-      const row = el.querySelector(`[data-id="${item.id}"]`);
-      row.querySelector('[data-f="drug"]').value = item.drug;
-      row.querySelector('[data-f="indication"]').value = item.indication;
-      if (type === "new") row.querySelector('[data-f="month"]').value = item.month;
-      if (type === "red") row.querySelector('[data-f="mult"]').value = item.mult;
+  preserveFocus(() => {
+    ["new","carry","red"].forEach(type => {
+      const el = document.getElementById(type);
+      el.innerHTML = lists[type].map(i => rowHtml(type, i)).join("");
+      lists[type].forEach(item => {
+        const row = el.querySelector(`[data-id="${item.id}"]`);
+        row.querySelector('[data-f="drug"]').value = item.drug;
+        row.querySelector('[data-f="indication"]').value = item.indication;
+        if (row.querySelector('[data-f="month"]')) row.querySelector('[data-f="month"]').value = item.month || 1;
+        if (row.querySelector('[data-f="mult"]'))  row.querySelector('[data-f="mult"]').value  = item.mult;
+      });
+    });
+
+    const humEl = document.getElementById("hum");
+    humEl.innerHTML = lists.hum.map(humiraHtml).join("");
+    lists.hum.forEach(h => {
+      const box = humEl.querySelector(`[data-id="${h.id}"]`);
+      box.querySelector('[data-f="indication"]').value = h.indication;
+      box.querySelector('[data-f="month"]').value = h.month;
+      SWITCH_TARGETS.forEach(t => {
+        const s = box.querySelector(`[data-tind="${t}"]`);
+        if (s) s.value = (h.targetInds && h.targetInds[t]) || Object.keys(DRUGS[t].indications)[0];
+      });
     });
   });
 
-  // humira section
-  const humEl = document.getElementById("hum");
-  humEl.innerHTML = lists.hum.map(humiraHtml).join("");
-  lists.hum.forEach(h => {
-    const box = humEl.querySelector(`[data-id="${h.id}"]`);
-    box.querySelector('[data-f="indication"]').value = h.indication;
-    box.querySelector('[data-f="month"]').value = h.month;
-  });
-
-  // aggregate
   const agg = {}; Object.keys(DRUGS).forEach(d => agg[d] = {n:0,c:0,r:0,s:0});
   let tN=0, tC=0, tR=0, tS=0;
-  lists.new.forEach(p => { const v=calcNew(p); agg[p.drug].n+=v; tN+=v; });
+  lists.new.forEach(p =>   { const v=calcNew(p);   agg[p.drug].n+=v; tN+=v; });
   lists.carry.forEach(c => { const v=calcCarry(c); agg[c.drug].c+=v; tC+=v; });
-  lists.red.forEach(r => { const v=calcRed(r); agg[r.drug].r+=v; tR+=v; });
+  lists.red.forEach(r =>   { const v=calcRed(r);   agg[r.drug].r+=v; tR+=v; });
   lists.hum.forEach(h => {
     calcHumira(h).switches.forEach(s => { agg[s.drug].s += s.packs; tS += s.packs; });
   });
@@ -453,60 +447,132 @@ function render() {
   document.querySelector("#breakdown tbody").innerHTML = Object.entries(agg).map(([k,v]) =>
     `<tr><td>${DRUGS[k].name}</td><td class="num">${v.n}</td><td class="num">${v.c}</td><td class="num">${v.r}</td><td class="num">${v.s}</td><td class="num"><strong>${v.n+v.c+v.r+v.s}</strong></td></tr>`
   ).join("");
+
+  persist();
 }
 
+/* ============================================================
+   STATE + EVENTS
+   ============================================================ */
 function addItem(type) {
   if (type === "hum") {
+    const alloc = {}; SWITCH_TARGETS.forEach(t => alloc[t] = t === "tremfya" ? 40 : t === "stelara" ? 40 : t === "simponi" ? 20 : 0);
     lists.hum.push({
-      id: nextId++,
-      indication: "ra",
-      total: 20,
-      dropout: 50,
-      month: 1,
-      allocTremfya: 40,
-      allocStelara: 40,
-      allocSimponi: 20
+      id: nextId++, sourceName: "Humira", indication: "ra", total: 20, dropout: 50, month: 1,
+      weight: 70, alloc, targetInds: {}
     });
   } else {
-    const base = { id: nextId++, drug: "tremfya", indication: "psoriasis", count: 1 };
-    if (type === "new") base.month = new Date().getMonth() + 1;
-    if (type === "red") base.mult = 1.5;
-    if (type === "carry") base.count = 5;
+    const base = { id: nextId++, drug: "tremfya", indication: "psoriasis", count: 1, weight: 70 };
+    if (type === "new")   { base.month = new Date().getMonth() + 1; }
+    if (type === "carry") { base.count = 5; base.month = 1; }
+    if (type === "red")   { base.mult = 1.5; base.month = 1; }
     lists[type].push(base);
   }
   render();
 }
 
-document.querySelectorAll("[data-add]").forEach(btn => {
-  btn.addEventListener("click", () => addItem(btn.dataset.add));
-});
+function findItem(el) {
+  const row = el.closest?.("[data-id]");
+  if (!row) return null;
+  const type = row.dataset.type;
+  const item = lists[type].find(x => x.id === +row.dataset.id);
+  return { row, type, item };
+}
+
+document.querySelectorAll("[data-add]").forEach(btn => btn.addEventListener("click", () => addItem(btn.dataset.add)));
 
 document.body.addEventListener("change", e => {
-  const row = e.target.closest("[data-id]");
-  if (!row) return;
-  const parentId = row.parentElement.id;
-  const type = parentId === "hum" ? "hum" : parentId;
-  const item = lists[type].find(x => x.id === +row.dataset.id);
-  if (!item) return;
-  const f = e.target.dataset.f;
-  let v = e.target.value;
-  const numeric = ["month","count","mult","total","dropout","allocTremfya","allocStelara","allocSimponi"];
-  if (numeric.includes(f)) v = +v;
-  item[f] = v;
-  if (f === "drug" && type !== "hum") item.indication = Object.keys(DRUGS[v].indications)[0];
+  const ctx = findItem(e.target);
+  if (!ctx || !ctx.item) return;
+  const t = e.target;
+  const numeric = ["month","count","mult","total","dropout","weight"];
+  const parseNum = v => { const n = +v; return isNaN(n) ? 0 : n; };
+
+  if (t.dataset.alloc) {
+    ctx.item.alloc[t.dataset.alloc] = Math.max(0, parseNum(t.value));
+  } else if (t.dataset.tind) {
+    ctx.item.targetInds = ctx.item.targetInds || {};
+    ctx.item.targetInds[t.dataset.tind] = t.value;
+  } else if (t.dataset.f) {
+    const f = t.dataset.f;
+    let v = t.value;
+    if (numeric.includes(f)) v = Math.max(0, parseNum(v));
+    ctx.item[f] = v;
+    if (f === "drug" && ctx.type !== "hum") ctx.item.indication = Object.keys(DRUGS[v].indications)[0];
+  }
   render();
 });
 
 document.body.addEventListener("click", e => {
-  if (!e.target.hasAttribute("data-rm")) return;
-  const row = e.target.closest("[data-id]");
-  const parentId = row.parentElement.id;
-  const type = parentId === "hum" ? "hum" : parentId;
-  lists[type] = lists[type].filter(x => x.id !== +row.dataset.id);
-  render();
+  if (e.target.hasAttribute("data-rm")) {
+    if (!confirm("Remove this entry?")) return;
+    const ctx = findItem(e.target);
+    if (ctx) { lists[ctx.type] = lists[ctx.type].filter(x => x.id !== ctx.item.id); render(); }
+  } else if (e.target.hasAttribute("data-dup")) {
+    const ctx = findItem(e.target);
+    if (!ctx) return;
+    const clone = JSON.parse(JSON.stringify(ctx.item)); clone.id = nextId++;
+    const idx = lists[ctx.type].indexOf(ctx.item);
+    lists[ctx.type].splice(idx+1, 0, clone);
+    render();
+  }
 });
 
-addItem("new");
+/* ============================================================
+   PERSISTENCE + IMPORT/EXPORT + RESET
+   ============================================================ */
+function persist() {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ lists, nextId })); } catch(_) {}
+}
+function hydrate() {
+  try {
+    const s = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null");
+    if (s && s.lists) { lists = s.lists; nextId = s.nextId || 1; return true; }
+  } catch(_) {}
+  return false;
+}
+
+document.getElementById("resetAll").addEventListener("click", () => {
+  if (!confirm("Clear all entries and start over?")) return;
+  lists = { new: [], carry: [], red: [], hum: [] };
+  nextId = 1;
+  addItem("new");
+});
+
+document.getElementById("exportJson").addEventListener("click", () => {
+  const blob = new Blob([JSON.stringify(lists, null, 2)], { type: "application/json" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = `biologic-scenario-${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+});
+
+const fileInput = document.getElementById("fileInput");
+document.getElementById("importJson").addEventListener("click", () => fileInput.click());
+fileInput.addEventListener("change", e => {
+  const f = e.target.files[0]; if (!f) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    try {
+      const data = JSON.parse(reader.result);
+      if (data.new && data.carry && data.red && data.hum) {
+        lists = data;
+        // repair legacy items (missing weight, alloc structure, etc.)
+        ["new","carry","red"].forEach(t => lists[t].forEach(i => { i.id = nextId++; if (i.weight == null) i.weight = 70; if (i.month == null && t !== "new") i.month = 1; }));
+        lists.hum.forEach(h => {
+          h.id = nextId++;
+          if (!h.alloc) h.alloc = { tremfya: h.allocTremfya||0, stelara: h.allocStelara||0, simponi: h.allocSimponi||0, remicade: 0 };
+          if (!h.targetInds) h.targetInds = {};
+          if (h.weight == null) h.weight = 70;
+        });
+        render();
+      } else alert("File does not look like a saved scenario.");
+    } catch(_) { alert("Could not parse file."); }
+    fileInput.value = "";
+  };
+  reader.readAsText(f);
+});
 
 /* ============================================================
    PDF EXPORT
@@ -514,53 +580,36 @@ addItem("new");
 function buildReportData() {
   const agg = {};
   Object.keys(DRUGS).forEach(d => agg[d] = { newPts: 0, carryPts: 0, redPts: 0, switchPts: 0, newPk: 0, carryPk: 0, redPk: 0, switchPk: 0 });
-  const flow = MONTHS.map(() => ({ new: 0, switch: 0 }));
+  const flow = MONTHS.map(() => ({ new: 0, switch: 0, carry: 0, red: 0 }));
 
-  lists.new.forEach(p => {
-    agg[p.drug].newPts += p.count;
-    agg[p.drug].newPk  += calcNew(p);
-    flow[p.month - 1].new += p.count;
-  });
-  lists.carry.forEach(c => {
-    agg[c.drug].carryPts += c.count;
-    agg[c.drug].carryPk  += calcCarry(c);
-  });
-  lists.red.forEach(r => {
-    agg[r.drug].redPts += r.count;
-    agg[r.drug].redPk  += calcRed(r);
-  });
+  lists.new.forEach(p => { agg[p.drug].newPts += p.count; agg[p.drug].newPk += calcNew(p); flow[p.month - 1].new += p.count; });
+  lists.carry.forEach(c => { agg[c.drug].carryPts += c.count; agg[c.drug].carryPk += calcCarry(c); flow[(c.month||1) - 1].carry += c.count; });
+  lists.red.forEach(r => { agg[r.drug].redPts += r.count; agg[r.drug].redPk += calcRed(r); flow[(r.month||1) - 1].red += r.count; });
   lists.hum.forEach(h => {
-    calcHumira(h).switches.forEach(s => {
-      agg[s.drug].switchPts += s.patients;
-      agg[s.drug].switchPk  += s.packs;
-      flow[h.month - 1].switch += s.patients;
-    });
+    calcHumira(h).switches.forEach(s => { agg[s.drug].switchPts += s.patients; agg[s.drug].switchPk += s.packs; flow[h.month - 1].switch += s.patients; });
   });
-
   return { agg, flow };
 }
 
 document.getElementById("exportPdf").addEventListener("click", () => {
+  if (!window.jspdf) { alert("PDF library did not load — check your connection and reload."); return; }
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF({ unit: "pt", format: "a4" });
   const today = new Date().toISOString().slice(0, 10);
   const { agg, flow } = buildReportData();
 
-  // Header
   doc.setFontSize(18).setFont(undefined, "bold");
   doc.text("Biologic Pack Calculator — Annual Report", 40, 50);
   doc.setFontSize(10).setFont(undefined, "normal").setTextColor(100);
   doc.text(`Generated ${today}`, 40, 68);
   doc.setTextColor(0);
 
-  // Year-end totals
-  let totPts = 0, totPk = 0;
+  let totNew=0, totCarry=0, totRed=0, totSwitch=0, totPk=0;
   Object.values(agg).forEach(v => {
-    totPts += v.newPts + v.carryPts + v.switchPts; // reduced counted within carryover usually; keep separate
+    totNew += v.newPts; totCarry += v.carryPts; totRed += v.redPts; totSwitch += v.switchPts;
     totPk  += v.newPk + v.carryPk + v.redPk + v.switchPk;
   });
-  let totRedPts = 0;
-  Object.values(agg).forEach(v => totRedPts += v.redPts);
+  const totPts = totNew + totCarry + totRed + totSwitch;
 
   doc.setFontSize(12).setFont(undefined, "bold");
   doc.text("Year-End Totals", 40, 100);
@@ -568,83 +617,87 @@ document.getElementById("exportPdf").addEventListener("click", () => {
     startY: 108,
     head: [["Metric", "Value"]],
     body: [
-      ["New patients",            Object.values(agg).reduce((s,v) => s+v.newPts, 0)],
-      ["Carryover patients",      Object.values(agg).reduce((s,v) => s+v.carryPts, 0)],
-      ["Dose-reduced patients",   totRedPts],
-      ["Switch patients (Humira)", Object.values(agg).reduce((s,v) => s+v.switchPts, 0)],
+      ["New patients",           totNew],
+      ["Carryover patients",     totCarry],
+      ["Dose-reduced patients",  totRed],
+      ["Switch patients",        totSwitch],
       [{ content: "Total patients on therapy", styles: { fontStyle: "bold" } },
        { content: totPts, styles: { fontStyle: "bold" } }],
       [{ content: "Total packs to order",      styles: { fontStyle: "bold", textColor: [200,16,46] } },
        { content: totPk,  styles: { fontStyle: "bold", textColor: [200,16,46] } }]
     ],
-    theme: "grid",
-    styles: { fontSize: 10 },
-    headStyles: { fillColor: [34,34,34] }
+    theme: "grid", styles: { fontSize: 10 }, headStyles: { fillColor: [34,34,34] }
   });
 
-  // Breakdown by drug
   doc.setFont(undefined, "bold").setFontSize(12);
   doc.text("Breakdown by Drug", 40, doc.lastAutoTable.finalY + 28);
   doc.autoTable({
     startY: doc.lastAutoTable.finalY + 36,
     head: [["Drug", "New pts", "Carry pts", "Red pts", "Switch pts", "Total pts", "Total packs"]],
     body: Object.entries(agg).map(([k, v]) => [
-      DRUGS[k].name,
-      v.newPts, v.carryPts, v.redPts, v.switchPts,
+      DRUGS[k].name, v.newPts, v.carryPts, v.redPts, v.switchPts,
       v.newPts + v.carryPts + v.redPts + v.switchPts,
       v.newPk + v.carryPk + v.redPk + v.switchPk
     ]),
-    theme: "striped",
-    styles: { fontSize: 10, halign: "right" },
+    theme: "striped", styles: { fontSize: 10, halign: "right" },
     columnStyles: { 0: { halign: "left", fontStyle: "bold" } },
     headStyles: { fillColor: [10,107,189] }
   });
 
-  // Recruitment flow
   doc.setFont(undefined, "bold").setFontSize(12);
   doc.text("Recruitment Flow (patients onboarded by month)", 40, doc.lastAutoTable.finalY + 28);
   doc.autoTable({
     startY: doc.lastAutoTable.finalY + 36,
-    head: [["Month", "New patients", "Switched from Humira", "Total onboarded"]],
-    body: MONTHS.map((m, i) => [
-      m, flow[i].new, flow[i].switch, flow[i].new + flow[i].switch
-    ]),
+    head: [["Month", "New", "Carryover start", "Reduced start", "Switched", "Total"]],
+    body: MONTHS.map((m, i) => [m, flow[i].new, flow[i].carry, flow[i].red, flow[i].switch,
+      flow[i].new + flow[i].carry + flow[i].red + flow[i].switch]),
     foot: [["Total",
       flow.reduce((s,f) => s+f.new, 0),
+      flow.reduce((s,f) => s+f.carry, 0),
+      flow.reduce((s,f) => s+f.red, 0),
       flow.reduce((s,f) => s+f.switch, 0),
-      flow.reduce((s,f) => s+f.new+f.switch, 0)
+      flow.reduce((s,f) => s+f.new+f.carry+f.red+f.switch, 0)
     ]],
-    theme: "striped",
-    styles: { fontSize: 10, halign: "right" },
+    theme: "striped", styles: { fontSize: 10, halign: "right" },
     columnStyles: { 0: { halign: "left", fontStyle: "bold" } },
     headStyles: { fillColor: [28,138,74] },
     footStyles: { fillColor: [240,240,240], textColor: 0, fontStyle: "bold" }
   });
 
-  // Per-patient details (if any new patients)
   if (lists.new.length) {
     doc.setFont(undefined, "bold").setFontSize(12);
     doc.text("New-Patient Detail", 40, doc.lastAutoTable.finalY + 28);
     doc.autoTable({
       startY: doc.lastAutoTable.finalY + 36,
-      head: [["#", "Drug", "Indication", "Start", "Patients", "Packs"]],
+      head: [["#", "Drug", "Indication", "Start", "Weight", "Patients", "Packs"]],
       body: lists.new.map((p, i) => {
         const ind = DRUGS[p.drug].indications[p.indication];
-        return [i+1, DRUGS[p.drug].name, ind ? ind.label : "?", MONTHS[p.month-1], p.count, calcNew(p)];
+        return [i+1, DRUGS[p.drug].name, ind ? ind.label : "?", MONTHS[p.month-1],
+          DRUGS[p.drug].weightBased ? (p.weight || 70) + " kg" : "—",
+          p.count, calcNew(p)];
       }),
-      theme: "grid",
-      styles: { fontSize: 9 },
-      headStyles: { fillColor: [100,100,100] }
+      theme: "grid", styles: { fontSize: 9 }, headStyles: { fillColor: [100,100,100] }
     });
   }
 
-  // Footer disclaimer
   const pageH = doc.internal.pageSize.height;
   doc.setFontSize(8).setTextColor(120);
   doc.text("Decision-support output. Dosing schedules are simplified reference values for forecasting only — verify against current product SmPC before clinical use.", 40, pageH - 30, { maxWidth: 515 });
 
   doc.save(`biologic-pack-report-${today}.pdf`);
 });
+
+/* ============================================================
+   BOOT + SERVICE WORKER
+   ============================================================ */
+if (!hydrate()) addItem("new");
+render();
+
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("sw.js").catch(() => {});
+  });
+}
 </script>
 </body>
 </html>
