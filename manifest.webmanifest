@@ -1,0 +1,19 @@
+{
+  "name": "Biologic Pack Calculator",
+  "short_name": "Bio Packs",
+  "description": "Forecast annual biologic pack requirements with switch modelling.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0a6bbd",
+  "theme_color": "#0a6bbd",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' fill='%230a6bbd'/><text x='256' y='360' font-family='system-ui' font-size='280' font-weight='700' fill='white' text-anchor='middle'>Rx</text></svg>",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
